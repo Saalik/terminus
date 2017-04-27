@@ -25,7 +25,13 @@ static const struct file_operations fops = {
 	.unlocked_ioctl = unioctl,
 };
 
-static struct workqueue_struct workst;
+/*
+  
+  Structure pour la création de la workqueue
+  struct workqueue_struct *create_workqueue(const char *name);
+
+ */
+static struct workqueue_struct station;
 
 DECLARE_WAIT_QUEUE_HEAD(cond_wait_queue);
 static bool cond;
@@ -35,12 +41,23 @@ static bool cond;
 
 static int __init init (void)
 {
+	/* Creation de la workqueue */
+	station = create_workqueue("workstation");
+
+	if ( station == NULL ) {
+		pr_alert("Workqueue station creation failed in init");
+		return -1;
+	}
 	
+	
+	pr_alert("Start to Terminus");
+	return 0;
 }
 
 static void __exit end (void)
 {
-
+	pr_alert("Terminus");
+	return 0;
 }
 
 module_init(init);
