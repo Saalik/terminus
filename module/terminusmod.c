@@ -15,6 +15,7 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Oskar Viljasaar, Saalik Hatia");
 MODULE_DESCRIPTION("PNL Project UPMC - Terminus");
 
+/* As named device number */
 int dev_num;
 
 long iohandler (struct file *filp,
@@ -39,7 +40,7 @@ static bool cond;
 
 
 
-static int __init init (void)
+static int __init start (void)
 {
 	/* Creation de la workqueue */
 	station = create_workqueue("workstation");
@@ -48,7 +49,8 @@ static int __init init (void)
 		pr_alert("Workqueue station creation failed in init");
 		return -1;
 	}
-	
+
+	dev_num = register_chrdev(0, "terminus", &fops);
 	
 	pr_alert("Start to Terminus");
 	return 0;
@@ -56,9 +58,11 @@ static int __init init (void)
 
 static void __exit end (void)
 {
+	
+	destroy_workqueue("workstation");
 	pr_alert("Terminus");
 	return 0;
 }
 
-module_init(init);
+module_init(start);
 module_exit(end);
