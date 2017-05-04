@@ -116,5 +116,5 @@ static void a_kill_signal(struct work_struct *work)
 		kill_pid(target, work->wk_sig, 1);
 
 	/* On libère la structure qui contenait nos données */
-	kfree(syn);
+	kfree(wk);
 }
