@@ -11,7 +11,8 @@
 #define T_KILL _IOR(TERMINUS_MAGIC, 3, int)
 #define T_WAIT _IOR(TERMINUS_MAGIC, 4, int)
 #define T_LSMOD _IOR(TERMINUS_MAGIC, 5, int)
-
+#define T_MEMINFO _IOR(TERMINUS_MAGIC, 6, int)
+#define T_A_KILL _IOR(TERMINUS_MAGIC, 7, int)
 
 struct pid_list {
 	int size;
