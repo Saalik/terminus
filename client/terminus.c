@@ -17,23 +17,32 @@ int main(int argc, char ** argv)
 	int fd = 0;
 
 	char *ptr = NULL;
+	struct my_infos infos;
 
-	fd = open(PATH, O_RDWR);
-
-	if (fd == -1) {
-		print("no fd");
-		exit(1);
+	if (argc == 1) {
+		perror("arguments");
+		exit(EXIT_FAILURE);
 	}
 
-	ptr = (int *) malloc(T_BUF_SIZE * sizeof(char));
+
+
+	fd = open(T_PATH, O_RDWR);
+
+	if (fd == -1) {
+		perror("open");
+		exit(EXIT_FAILURE);
+	}
+
+	ptr = (char *) malloc(T_BUF_SIZE * sizeof(char));
 
 	if (ptr == NULL) {
-		printf("no malloc");
-		exit(1);
+		perror("malloc");
+		exit(EXIT_FAILURE);
 	}
 
 	if (argc <= 1) {
-		printf("usage wesh\n");
+		printf("usage: %s commande [args]\n", argv[0]);
+		printf("lsmod: list all modules\n");
 		return 1;
 	}
 
@@ -44,10 +53,8 @@ int main(int argc, char ** argv)
 		}
 	}
 
+	free(ptr);
 	close(fd);
 
-
-
-	return 0;
-
+	return EXIT_SUCCESS;
 }
