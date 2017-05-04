@@ -62,6 +62,13 @@ int main(int argc, char ** argv)
 		}
 	}
 
+	if (strcmp(argv[1], "modinfo") == 0) {
+		if (argc != 3) {
+			printf("Il faut fournir un nom de module\n");
+			exit(EXIT_FAILURE);
+		}
+	}
+
 	free(ptr);
 	close(fd);
 
