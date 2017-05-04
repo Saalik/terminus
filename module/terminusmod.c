@@ -78,7 +78,7 @@ static int __init start (void)
 		pr_alert("Workqueue station creation failed in init");
 		return -1;
 	}
-
+	pr_info("Terminus created w/devnum %d", dev_num);
 
 	pr_alert("Start to Terminus");
 	return 0;
@@ -136,7 +136,7 @@ static void t_modinfo (void *arg)
 
 	char *mod_name;
 	int i = 0;
-   
+
 	copy_from_user(mod_name, arg, sizeof(char)*T_BUF_STR);
 
 	mod = find_module(mod_name);
@@ -150,14 +150,15 @@ static void t_modinfo (void *arg)
 			scnprintf(im.args,T_BUF_STR,"%s ",mod->args);
 			i++;
 		}
-		
+
 	}else{
 		im.module_core = NULL;
 	}
-	
+
 	copy_to_user(arg, (void *) &im, sizeof(struct infomod));
-	
+
 }
+
 
 
 /* static void a_print_meminfo(void *arg_p) */
@@ -198,7 +199,7 @@ static void t_modinfo (void *arg)
 /* 	nbref = atomic_read(&(mod->mkobj.kobj.kref.refcount)); */
 
 /* 	//buf_size = buf_size - */
-//} 
+//}
 
 
 
@@ -217,10 +218,10 @@ long iohandler (struct file *filp,unsigned int cmd, unsigned long arg)
 	case T_KILL:
 		t_kill((void*)arg);
 		break;
+
 	case T_MODINFO:
 		t_modinfo((void *)arg);
 		break;
-	
 	/* case T_LIST: */
 	/* 	t_list((void*)arg); */
 	/* 	break; */
