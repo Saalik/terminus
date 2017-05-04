@@ -118,7 +118,7 @@ static void a_print_meminfo(void *arg_p)
 	wake_up(&waiter);
 }
 
-static void kill_signal(void *arg_p)
+static void t_kill(void *arg_p)
 {
 	struct signal_s s;
 	struct pid *pid_target;
@@ -132,7 +132,7 @@ static void kill_signal(void *arg_p)
 }
 
 
-static void a_kill_signal(struct work_struct *work)
+static void t_a_kill(struct work_struct *work)
 {
 	struct work_killer *wk;
 	struct pid *target;
@@ -175,14 +175,22 @@ long iohandler (struct file *filp,unsigned int cmd, unsigned long arg)
 	switch (cmd) {
 		
 	case T_LIST:
-		kill_signal((void*)arg);
+		t_list((void*)arg);
 		break;
 	case T_FG:
+		t_fg();
 		break;
 	case T_KILL:
+		t_kill();
+		break;
+	case T_A_KILL:
+		t_a_kill();
 		break;
 	case T_WAIT:
+		t_wait();
 		break;
 	}
 
+
+	return 0;
 }
