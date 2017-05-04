@@ -98,7 +98,7 @@ module_exit(end);
 
 
 
-static void print_meminfo(void *arg_p)
+static void t_meminfo(void *arg_p)
 {
 	struct sysinfo values;
 
@@ -190,7 +190,7 @@ long iohandler (struct file *filp,unsigned int cmd, unsigned long arg)
 		t_wait();
 		break;
 	case T_MEMINFO:
-		t_meminfo();
+		t_meminfo((void*)arg);
 		break;
 	case T_LSMOD:
 		t_lsmod((void *)arg);
@@ -198,7 +198,6 @@ long iohandler (struct file *filp,unsigned int cmd, unsigned long arg)
 	default:
 		pr_alert("No station found");
 		return -1;
-
 	}
 
 	
