@@ -13,10 +13,17 @@
 
 int main(int argc, char ** argv)
 {
-	int fd, i;
-	int nb_args, *arg;
-	
-	
+	if (argc <= 1) {
+		printf("usage wesh\n");
+		return 1;
+	}
 
+	if (strcmp(argv[1], "lsmod") == 0) {
+		printf("lsmod\n");
+	}
+
+
+
+	return 0;
 
 }

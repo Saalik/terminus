@@ -34,3 +34,5 @@ struct my_infos {
 	unsigned long long freehigh;	/* Available high memory size */
 	unsigned long mem_unit;	        /* Memory unit size in bytes */
 };
+
+#endif /* TERMINUS */
