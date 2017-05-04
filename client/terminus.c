@@ -46,10 +46,11 @@ int main(int argc, char ** argv)
 		return 1;
 	}
 
-	if (strcmp(argv[1], "lsmod") == 0) {
-		printf("lsmod\n");
-		if (ioctl(fd, T_LSMOD, ptr) == 0) {
-			printf("%s", ptr);
+	if (strcmp(argv[1], "meminfo") == 0) {
+		printf("meminfo\n");
+		if (ioctl(fd, T_MEMINFO, &infos) == 0) {
+			printf("meminfo done\n");
+			printf("%llu uptime\n");
 		}
 	}
 
