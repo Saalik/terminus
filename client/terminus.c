@@ -70,7 +70,7 @@ int main(int argc, char ** argv)
 		}
 
 		info_module.arg = strdup(argv[2]);
-
+		printf("info_module.arg = %s\n", info_module.arg);
 		if (ioctl(fd, T_MODINFO, &info_module) == 0) {
 			if (info_module.data.module_core == NULL) {
 				printf("nnnoooooooooo\n");
