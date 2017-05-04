@@ -35,7 +35,7 @@ static const struct file_operations fops = {
 
 static struct workqueue_struct station;
 
-DECLARE_WAIT_QUEUE_HEAD(cond_wait_queue);
+DECLARE_WAIT_QUEUE_HEAD(waiter);
 static bool cond;
 
 
@@ -72,10 +72,45 @@ module_exit(end);
 static void print_meminfo(void *arg_p)
 {
 	struct sysinfo values;
-
-	memset(&values, 0, sizeof(struct sysinfo));
 	si_meminfo(&values);
 	copy_to_user((void *)arg_p, &values, sizeof(struct my_infos));
+}
 
-	pr_debug("Given value given to ya!\n");
+static void a_print_meminfo(void *arg_p)
+{
+  	struct sysinfo values;
+	si_meminfo(&values);
+	copy_to_user((void *)arg_p, &values, sizeof(struct my_infos));
+	wake_up(&waiter);
+}
+
+static void kill_signal(void *arg_p)
+{
+	struct signal_s s;
+	struct pid *pid_target;
+
+	copy_from_user(&s, arg_p, sizeof(struct signal_s));
+	pid_target = find_get_pid(s.pid);
+	
+	/* Si on a bien trouvé un processus correspondant. */
+	if (pid_target)
+		kill_pid(pid_target, s.sig, 1);
+}
+
+
+static void a_kill_signal(struct work_struct *work)
+{
+	struct work_killer *wk;
+	struct pid *target;
+
+	wk = container_of(work, struct syndicated_killer, wk_ws);
+	pr_debug("Somone just asked for a delayed murder!\n");
+
+	pid_target = find_get_pid(syn->w_sig.pid);
+	/* Si on a bien trouvé un processus correspondant. */
+	if (pid_target)
+		kill_pid(pid_target, syn->w_sig.sig, 1);
+
+	/* On libère la structure qui contenait nos données */
+	kfree(syn);
 }
