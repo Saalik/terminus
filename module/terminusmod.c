@@ -6,6 +6,7 @@
 #include <linux/wait.h>
 #include <linux/pid.h>
 #include <linux/fs.h>
+#include <linux/uaccess.h>
 #include <linux/mm.h>
 
 /* Still useless for now */
@@ -46,7 +47,7 @@ struct meminfo_work {
 
 
 long iohandler (struct file *filp,
-		unsigned int cmd, 
+		unsigned int cmd,
 		unsigned long arg);
 
 static const struct file_operations fops = {
@@ -54,13 +55,13 @@ static const struct file_operations fops = {
 };
 
 /*
-  
+
   Structure pour la création de la workqueue
   struct workqueue_struct *create_workqueue(const char *name);
 
 */
 
-static struct workqueue_struct station;
+static struct workqueue_struct *station;
 
 DECLARE_WAIT_QUEUE_HEAD(cond_wait_queue);
 static bool cond;
@@ -72,13 +73,13 @@ static int __init start (void)
 	dev_num = register_chrdev(0, "terminus", &fops);
 	station = create_workqueue("workstation");
 
-	
+
 	if ( station == NULL ) {
 		pr_alert("Workqueue station creation failed in init");
 		return -1;
 	}
-	
-	
+
+
 	pr_alert("Start to Terminus");
 	return 0;
 }
@@ -87,10 +88,11 @@ static int __init start (void)
 
 static void __exit end (void)
 {
-	
-	destroy_workqueue("workstation");
+
+	destroy_workqueue(station);
 	pr_alert("Terminus");
-	return 0;
+
+	return;
 }
 
 module_init(start);
@@ -115,10 +117,10 @@ static void t_kill(void *arg_p)
 {
 	struct signal_s s;
 	struct pid *pid_target;
-	
+
 	copy_from_user(&s, arg_p, sizeof(struct signal_s));
 	pid_target = find_get_pid(s.pid);
-	
+
 	/* Si on a bien trouvé un processus correspondant. */
 	if (pid_target)
 		kill_pid(pid_target, s.sig, 1);
@@ -167,8 +169,8 @@ static void t_kill(void *arg_p)
 /* 	//buf_size = buf_size - */
 /* } */
 
-		
-		
+
+
 long iohandler (struct file *filp,unsigned int cmd, unsigned long arg)
 {
 	/* All the structs*/
@@ -181,7 +183,7 @@ long iohandler (struct file *filp,unsigned int cmd, unsigned long arg)
 	case T_MEMINFO:
 		t_meminfo((void*)arg);
 		break;
-		
+
 	/* case T_LIST: */
 	/* 	t_list((void*)arg); */
 	/* 	break; */
@@ -197,15 +199,15 @@ long iohandler (struct file *filp,unsigned int cmd, unsigned long arg)
 	/* case T_WAIT: */
 	/* 	t_wait(); */
 	/* 	break; */
-	
+
 	/* case T_LSMOD: */
 	/* 	t_lsmod((void *)arg); */
 	/* 	break; */
-		
+
 	default:
 		pr_alert("No station found");
 		return -1;
 	}
-	
+
 	return 0;
 }

@@ -20,6 +20,10 @@ struct pid_list {
 	int ret;
 };
 
+struct signal_s {
+	int pid;
+	int sig;
+};
 
 struct my_infos {
 	long long uptime;		/* Seconds since boot */
