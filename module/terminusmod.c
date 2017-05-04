@@ -9,7 +9,7 @@
 #include <linux/mm.h>
 
 /* Still useless for now */
-#include "../inc/terminux.h"
+#include "../inc/terminus.h"
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Oskar Viljasaar, Saalik Hatia");
@@ -98,6 +98,8 @@ module_exit(end);
 
 
 
+//static void t_list(void *arg) {}
+
 static void t_meminfo(void *arg_p)
 {
 	struct sysinfo values;
@@ -110,58 +112,56 @@ static void t_meminfo(void *arg_p)
 }
 
 
-static void a_print_meminfo(void *arg_p)
-{
-	struct sysinfo values;
-	si_meminfo(&values);
-	copy_to_user((void *)arg_p, &values, sizeof(struct my_infos));
-	wake_up(&waiter);
-}
+/* static void a_print_meminfo(void *arg_p) */
+/* { */
+/* 	struct sysinfo values; */
+/* 	si_meminfo(&values); */
+/* 	copy_to_user((void *)arg_p, &values, sizeof(struct my_infos)); */
+/* 	wake_up(&waiter); */
+/* } */
 
-static void t_kill(void *arg_p)
-{
-	struct signal_s s;
-	struct pid *pid_target;
+/* static void t_kill(void *arg_p) */
+/* { */
+/* 	struct signal_s s; */
+/* 	struct pid *pid_target; */
 
-	copy_from_user(&s, arg_p, sizeof(struct signal_s));
-	pid_target = find_get_pid(s.pid);
+/* 	copy_from_user(&s, arg_p, sizeof(struct signal_s)); */
+/* 	pid_target = find_get_pid(s.pid); */
 	
-	/* Si on a bien trouvé un processus correspondant. */
-	if (pid_target)
-		kill_pid(pid_target, s.sig, 1);
-}
+/* 	/\* Si on a bien trouvé un processus correspondant. *\/ */
+/* 	if (pid_target) */
+/* 		kill_pid(pid_target, s.sig, 1); */
+/* } */
 
 
-static void t_a_kill(struct work_struct *work)
-{
-	struct work_killer *wk;
-	struct pid *target;
+/* static void t_a_kill(struct work_struct *work) */
+/* { */
+/* 	struct work_killer *wk; */
+/* 	struct pid *target; */
 
-	/*REMEMBER*/
-	wk = container_of(work, struct work_killer, wk_ws);
-	/* On cherche la cible */
-	target = find_get_pid(wk->wk_pid);
-	/* Si une cible a été trouvé*/
-	if (target)
-		kill_pid(target, work->wk_sig, 1);
-	/* Free*/
-	kfree(wk);
-}
+/* 	/\*REMEMBER*\/ */
+/* 	wk = container_of(work, struct work_killer, wk_ws); */
+/* 	/\* On cherche la cible *\/ */
+/* 	target = find_get_pid(wk->wk_pid); */
+/* 	/\* Si une cible a été trouvé*\/ */
+/* 	if (target) */
+/* 		kill_pid(target, work->wk_sig, 1); */
+/* 	/\* Free*\/ */
+/* 	kfree(wk); */
+/* } */
 
-static void t_lsmod(void *arg) {
-	struct module *mod;
-	char *sret, buf_str[T_BUF_STR];
-	int nbref, buf_size = T_BUF_SIZE;
+/* static void t_lsmod(void *arg) { */
+/* 	struct module *mod; */
+/* 	char *sret, buf_str[T_BUF_STR]; */
+/* 	int nbref, buf_size = T_BUF_SIZE; */
 
-	sret= kzalloc(T_BUF_SIZE, GFP_KERNEL);
+/* 	sret= kzalloc(T_BUF_SIZE, GFP_KERNEL); */
 
-	mod = THIS_MODULE;
-	nbref = atomic_read(&(mod->mkobj.kobj.kref.refcount));
+/* 	mod = THIS_MODULE; */
+/* 	nbref = atomic_read(&(mod->mkobj.kobj.kref.refcount)); */
 
-	//buf_size = buf_size -
-  
-  
-}
+/* 	//buf_size = buf_size - */
+/* } */
 
 		
 		
@@ -174,27 +174,28 @@ long iohandler (struct file *filp,unsigned int cmd, unsigned long arg)
 
 	switch (cmd) {
 		
-	case T_LIST:
-		t_list((void*)arg);
-		break;
-	case T_FG:
-		t_fg();
-		break;
-	case T_KILL:
-		t_kill();
-		break;
-	case T_A_KILL:
-		t_a_kill();
-		break;
-	case T_WAIT:
-		t_wait();
-		break;
+	/* case T_LIST: */
+	/* 	t_list((void*)arg); */
+	/* 	break; */
+	/* case T_FG: */
+	/* 	t_fg(); */
+	/* 	break; */
+	/* case T_KILL: */
+	/* 	t_kill((void*)arg); */
+	/* 	break; */
+	/* case T_A_KILL: */
+	/* 	t_a_kill(); */
+	/* 	break; */
+	/* case T_WAIT: */
+	/* 	t_wait(); */
+	/* 	break; */
 	case T_MEMINFO:
 		t_meminfo((void*)arg);
 		break;
-	case T_LSMOD:
-		t_lsmod((void *)arg);
-		break;
+	/* case T_LSMOD: */
+	/* 	t_lsmod((void *)arg); */
+	/* 	break; */
+		
 	default:
 		pr_alert("No station found");
 		return -1;
