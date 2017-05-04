@@ -189,8 +189,16 @@ long iohandler (struct file *filp,unsigned int cmd, unsigned long arg)
 	case T_WAIT:
 		t_wait();
 		break;
+	case T_MEMINFO:
+		t_meminfo();
+		break;
+	 
+	default:
+		pr_alert("No station found");
+		return -1;
+
 	}
 
-
+	
 	return 0;
 }
