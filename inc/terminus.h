@@ -11,6 +11,7 @@
 #define T_KILL _IOR(TERMINUS_MAGIC, 3, int)
 #define T_WAIT _IOR(TERMINUS_MAGIC, 4, int)
 
+#define T_PATH "/tmp/terminus"
 
 struct pid_list {
 	int size;
