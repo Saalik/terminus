@@ -46,8 +46,8 @@ struct meminfo_work {
 
 
 long iohandler (struct file *filp,
-	      unsigned int cmd, 
-	      unsigned long arg);
+		unsigned int cmd, 
+		unsigned long arg);
 
 static const struct file_operations fops = {
 	.unlocked_ioctl = unioctl,
@@ -58,7 +58,7 @@ static const struct file_operations fops = {
   Structure pour la création de la workqueue
   struct workqueue_struct *create_workqueue(const char *name);
 
- */
+*/
 
 static struct workqueue_struct station;
 
@@ -96,6 +96,8 @@ static void __exit end (void)
 module_init(start);
 module_exit(end);
 
+
+
 static void print_meminfo(void *arg_p)
 {
 	struct sysinfo values;
@@ -110,7 +112,7 @@ static void print_meminfo(void *arg_p)
 
 static void a_print_meminfo(void *arg_p)
 {
-  	struct sysinfo values;
+	struct sysinfo values;
 	si_meminfo(&values);
 	copy_to_user((void *)arg_p, &values, sizeof(struct my_infos));
 	wake_up(&waiter);
@@ -147,15 +149,40 @@ static void a_kill_signal(struct work_struct *work)
 }
 
 static void print_lsmod(void *arg) {
-  struct module *mod;
-  char *sret, buf_str[T_BUF_STR];
-  int nbref, buf_size = T_BUF_SIZE;
+	struct module *mod;
+	char *sret, buf_str[T_BUF_STR];
+	int nbref, buf_size = T_BUF_SIZE;
 
-  sret= kzalloc(T_BUF_SIZE, GFP_KERNEL);
+	sret= kzalloc(T_BUF_SIZE, GFP_KERNEL);
 
-  mod = THIS_MODULE;
-  nbref = atomic_read(&(mod->mkobj.kobj.kref.refcount));
+	mod = THIS_MODULE;
+	nbref = atomic_read(&(mod->mkobj.kobj.kref.refcount));
 
-  buf_size = buf_size -
+	//buf_size = buf_size -
   
   
+}
+
+		
+		
+long iohandler (struct file *filp,unsigned int cmd, unsigned long arg)
+{
+	/* All the structs*/
+	struct workkiller wk;
+	struct lsmod_work lsw;
+	struct meminfo_work miw;
+
+	switch (cmd) {
+		
+	case T_LIST:
+		kill_signal((void*)arg);
+		break;
+	case T_FG:
+		break;
+	case T_KILL:
+		break;
+	case T_WAIT:
+		break;
+	}
+
+}
