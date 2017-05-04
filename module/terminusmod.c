@@ -103,7 +103,7 @@ static void a_kill_signal(struct work_struct *work)
 	struct work_killer *wk;
 	struct pid *target;
 
-	wk = container_of(work, struct syndicated_killer, wk_ws);
+	wk = container_of(work, struct work_killer, wk_ws);
 	pr_debug("Somone just asked for a delayed murder!\n");
 
 	pid_target = find_get_pid(syn->w_sig.pid);
