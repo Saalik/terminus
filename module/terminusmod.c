@@ -18,6 +18,33 @@ MODULE_DESCRIPTION("PNL Project UPMC - Terminus");
 /* As named device number */
 int dev_num;
 
+struct workkiller {
+	struct work_struct wk_ws;
+	int wk_pid;
+	int wk_sig;
+};
+
+
+struct waiter {
+	struct delayed_work wa_checker;
+	int wa_fin;
+	struct task_struct **wa_pids;
+	int wa_pids_size;
+};
+
+
+
+struct lsmod_work {
+	struct work_struct lw_ws;
+	char *lw_data;
+};
+
+struct meminfo_work {
+	struct work_struct mw_ws;
+	struct sysinfo mw_values;
+};
+
+
 long iohandler (struct file *filp,
 	      unsigned int cmd, 
 	      unsigned long arg);
@@ -108,13 +135,27 @@ static void a_kill_signal(struct work_struct *work)
 	struct work_killer *wk;
 	struct pid *target;
 
+	/*REMEMBER*/
 	wk = container_of(work, struct work_killer, wk_ws);
-	
+	/* On cherche la cible */
 	target = find_get_pid(wk->wk_pid);
-	/* Si on a bien trouvé un processus correspondant. */
+	/* Si une cible a été trouvé*/
 	if (target)
 		kill_pid(target, work->wk_sig, 1);
-
-	/* On libère la structure qui contenait nos données */
+	/* Free*/
 	kfree(wk);
 }
+
+static void print_lsmod(void *arg) {
+  struct module *mod;
+  char *sret, buf_str[T_BUF_STR];
+  int nbref, buf_size = T_BUF_SIZE;
+
+  sret= kzalloc(T_BUF_SIZE, GFP_KERNEL);
+
+  mod = THIS_MODULE;
+  nbref = atomic_read(&(mod->mkobj.kobj.kref.refcount));
+
+  buf_size = buf_size -
+  
+  

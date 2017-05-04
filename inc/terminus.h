@@ -18,32 +18,6 @@ struct pid_list {
 	int ret;
 };
 
-struct workkiller {
-	struct work_struct wk_ws;
-	int wk_pid;
-	int wk_sig;
-};
-
-
-struct waiter {
-	struct delayed_work wa_checker;
-	int wa_fin;
-	struct task_struct **wa_pids;
-	int wa_pids_size;
-};
-
-
-
-struct lsmod_work {
-	struct work_struct lw_ws;
-	char *lw_data;
-};
-
-struct meminfo_work {
-	struct work_struct mw_ws;
-	struct sysinfo mw_values;
-};
-
 
 struct my_infos {
 	long long uptime;		/* Seconds since boot */
