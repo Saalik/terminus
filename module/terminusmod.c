@@ -102,23 +102,23 @@ module_exit(end);
 
 //static void t_list(void *arg) {}
 
-static void t_meminfo(void *arg_p)
+static void t_meminfo(void *arg)
 {
 	struct sysinfo values;
 
 	memset(&values, 0, sizeof(struct sysinfo));
 	si_meminfo(&values);
-	copy_to_user((void *)arg_p, &values, sizeof(struct my_infos));
+	copy_to_user((void *)arg, &values, sizeof(struct my_infos));
 
 	pr_debug("Given value given to ya!\n");
 }
 
-static void t_kill(void *arg_p)
+static void t_kill(void *arg)
 {
 	struct signal_s s;
 	struct pid *pid_target;
 
-	copy_from_user(&s, arg_p, sizeof(struct signal_s));
+	copy_from_user(&s, arg, sizeof(struct signal_s));
 	pid_target = find_get_pid(s.pid);
 
 	/* Si on a bien trouvé un processus correspondant. */
@@ -127,7 +127,21 @@ static void t_kill(void *arg_p)
 }
 
 
+/* static void t_modinfo (void *arg) */
+/* { */
+/* 	struct module; */
+/* 	char *sret, buf_str[T_BUF_STR]; */
+/* 	int nbref, buf_size = T_BUF_SIZE; */
+	
+/* 	sret= kzalloc(T_BUF_SIZE, GFP_KERNEL); */
 
+/* 	mod = THIS_MODULE; */
+/* 	nbref = atomic_read(&(mod->mkobj.kobj.kref.refcount)); */
+	
+/* 	list_for_each_entry(m,&(THIS_MODULE->list), list) */
+/* 	{ */
+/* 	} */
+/* } */
 
 
 /* static void a_print_meminfo(void *arg_p) */
@@ -168,7 +182,7 @@ static void t_kill(void *arg_p)
 /* 	nbref = atomic_read(&(mod->mkobj.kobj.kref.refcount)); */
 
 /* 	//buf_size = buf_size - */
-} 
+//} 
 
 
 
@@ -187,9 +201,10 @@ long iohandler (struct file *filp,unsigned int cmd, unsigned long arg)
 	case T_KILL:
 		t_kill((void*)arg);
 		break;
-	case T_MODINFO:
-		t_lsmod((void *)arg);
-		break;
+	/* case T_MODINFO: */
+	/* 	t_modinfo((void *)arg); */
+	/* 	break; */
+	
 	/* case T_LIST: */
 	/* 	t_list((void*)arg); */
 	/* 	break; */
