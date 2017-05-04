@@ -47,7 +47,6 @@ int main(int argc, char ** argv)
 	}
 
 	if (strcmp(argv[1], "meminfo") == 0) {
-		printf("meminfo\n");
 		if (ioctl(fd, T_MEMINFO, &infos) == 0) {
 			printf("TotalRam\t%llu pages\n", infos.totalram);
 			printf("SharedRam\t%llu pages\n", infos.sharedram);
@@ -56,6 +55,10 @@ int main(int argc, char ** argv)
 			printf("TotalHigh\t%llu pages\n", infos.totalhigh);
 			printf("FreeHigh\t%llu pages\n", infos.freehigh);
 			printf("Memory unit\t%llu bytes\n", infos.mem_unit);
+		}
+		else {
+			perror("ioctl");
+			exit(EXIT_FAILURE);
 		}
 	}
 
