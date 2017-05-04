@@ -51,7 +51,7 @@ int main(int argc, char ** argv)
 		if (ioctl(fd, T_MEMINFO, &infos) == 0) {
 			printf("TotalRam\t%llu pages\n", infos.totalram);
 			printf("SharedRam\t%llu pages\n", infos.sharedram);
-			printf("FreeRam\t%llu pages\n", infos.freeram);
+			printf("FreeRam\t\t%llu pages\n", infos.freeram);
 			printf("BufferRam\t%llu pages\n", infos.bufferram);
 			printf("TotalHigh\t%llu pages\n", infos.totalhigh);
 			printf("FreeHigh\t%llu pages\n", infos.freehigh);
