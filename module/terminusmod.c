@@ -148,7 +148,7 @@ static void t_a_kill(struct work_struct *work)
 	kfree(wk);
 }
 
-static void print_lsmod(void *arg) {
+static void t_lsmod(void *arg) {
 	struct module *mod;
 	char *sret, buf_str[T_BUF_STR];
 	int nbref, buf_size = T_BUF_SIZE;
@@ -192,7 +192,9 @@ long iohandler (struct file *filp,unsigned int cmd, unsigned long arg)
 	case T_MEMINFO:
 		t_meminfo();
 		break;
-	 
+	case T_LSMOD:
+		t_lsmod((void *)arg);
+		break;
 	default:
 		pr_alert("No station found");
 		return -1;
