@@ -32,29 +32,31 @@ static const struct file_operations fops = {
   struct workqueue_struct *create_workqueue(const char *name);
 
  */
+
 static struct workqueue_struct station;
 
 DECLARE_WAIT_QUEUE_HEAD(cond_wait_queue);
 static bool cond;
 
 
-
-
 static int __init start (void)
 {
-	/* Creation de la workqueue */
+
+	dev_num = register_chrdev(0, "terminus", &fops);
 	station = create_workqueue("workstation");
 
+	
 	if ( station == NULL ) {
 		pr_alert("Workqueue station creation failed in init");
 		return -1;
 	}
-
-	dev_num = register_chrdev(0, "terminus", &fops);
+	
 	
 	pr_alert("Start to Terminus");
 	return 0;
 }
+
+
 
 static void __exit end (void)
 {
@@ -66,3 +68,14 @@ static void __exit end (void)
 
 module_init(start);
 module_exit(end);
+
+static void print_meminfo(void *arg_p)
+{
+	struct sysinfo values;
+
+	memset(&values, 0, sizeof(struct sysinfo));
+	si_meminfo(&values);
+	copy_to_user((void *)arg_p, &values, sizeof(struct my_infos));
+
+	pr_debug("Given value given to ya!\n");
+}
