@@ -19,6 +19,8 @@ int main(int argc, char ** argv)
 	char *ptr = NULL;
 	struct my_infos infos;
 	union arg_infomod info_module;
+	info_module.arg = (char *) malloc(T_BUF_STR * sizeof(char));
+	memset(info_module.arg, 0, T_BUF_STR);
 
 	if (argc == 1) {
 		perror("arguments");
@@ -69,7 +71,7 @@ int main(int argc, char ** argv)
 			exit(EXIT_FAILURE);
 		}
 
-		info_module.arg = strdup(argv[2]);
+		strcpy(info_module.arg, argv[2]);
 		printf("info_module.arg = %s\n", info_module.arg);
 		if (ioctl(fd, T_MODINFO, &info_module) == 0) {
 			if (info_module.data.module_core == NULL) {
