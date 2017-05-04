@@ -50,7 +50,8 @@ int main(int argc, char ** argv)
 		printf("meminfo\n");
 		if (ioctl(fd, T_MEMINFO, &infos) == 0) {
 			printf("meminfo done\n");
-			printf("%llu uptime\n");
+			printf("%llu uptime\n", infos.uptime);
+			printf("loads\n%llu\n%llu\n%llu\n", infos.loads[0], infos.loads[1], infos.loads[2]);
 		}
 	}
 
