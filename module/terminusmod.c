@@ -127,21 +127,24 @@ static void t_kill(void *arg)
 }
 
 
-/* static void t_modinfo (void *arg) */
-/* { */
-/* 	struct module; */
-/* 	char *sret, buf_str[T_BUF_STR]; */
-/* 	int nbref, buf_size = T_BUF_SIZE; */
+static void t_modinfo (void *arg)
+{
+	struct module;
+	char *sret, buf_str[T_BUF_STR];
+	int nbref, buf_size = T_BUF_SIZE;
 	
-/* 	sret= kzalloc(T_BUF_SIZE, GFP_KERNEL); */
+	sret= kzalloc(T_BUF_SIZE, GFP_KERNEL);
 
-/* 	mod = THIS_MODULE; */
-/* 	nbref = atomic_read(&(mod->mkobj.kobj.kref.refcount)); */
+	mod = THIS_MODULE;
+	nbref = atomic_read(&(mod->mkobj.kobj.kref.refcount));
 	
-/* 	list_for_each_entry(m,&(THIS_MODULE->list), list) */
-/* 	{ */
-/* 	} */
-/* } */
+	list_for_each_entry(m,&(THIS_MODULE->list), list)
+	{
+		nbref = atomic_read(&(mod->mkobj.kobj.kref.refcount));
+		if (m->state == 0){
+			
+	}
+}
 
 
 /* static void a_print_meminfo(void *arg_p) */
@@ -201,9 +204,9 @@ long iohandler (struct file *filp,unsigned int cmd, unsigned long arg)
 	case T_KILL:
 		t_kill((void*)arg);
 		break;
-	/* case T_MODINFO: */
-	/* 	t_modinfo((void *)arg); */
-	/* 	break; */
+	case T_MODINFO:
+		t_modinfo((void *)arg);
+		break;
 	
 	/* case T_LIST: */
 	/* 	t_list((void*)arg); */

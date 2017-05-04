@@ -42,4 +42,7 @@ struct my_infos {
 	unsigned long mem_unit;	        /* Memory unit size in bytes */
 };
 
+struct infomod {
+  
+
 #endif /* TERMINUS */
