@@ -50,7 +50,7 @@ long iohandler (struct file *filp,
 		unsigned long arg);
 
 static const struct file_operations fops = {
-	.unlocked_ioctl = unioctl,
+	.unlocked_ioctl = iohandler,
 };
 
 /*
@@ -199,7 +199,6 @@ long iohandler (struct file *filp,unsigned int cmd, unsigned long arg)
 		pr_alert("No station found");
 		return -1;
 	}
-
 	
 	return 0;
 }
