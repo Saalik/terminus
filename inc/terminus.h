@@ -5,7 +5,7 @@
 
 #define T_BUF_SIZE 4096
 #define T_BUF_STR 256
-
+#define DELAY 100
 #define T_LIST _IOR(TERMINUS_MAGIC, 1, int)
 #define T_FG _IOWR(TERMINUS_MAGIC, 2, int)
 #define T_KILL _IOR(TERMINUS_MAGIC, 3, int)
@@ -13,7 +13,7 @@
 #define T_MODINFO _IOR(TERMINUS_MAGIC, 5, int)
 #define T_MEMINFO _IOR(TERMINUS_MAGIC, 6, int)
 #define T_A_KILL _IOR(TERMINUS_MAGIC, 7, int)
-
+ 
 
 struct pid_list {
 	int size;

@@ -147,7 +147,8 @@ static void t_modinfo (void *arg)
 		im.module_core = mod->module_core;
 		im.num_kp = mod->num_kp;
 		while (i < mod->num_kp ) {
-			scnprintf(im.args,T_BUF_STR,"%s ",mod->args);
+			/*kernel paramkp*/
+			scnprintf(im.args,T_BUF_STR,"%s ",mod->kp[i].name);
 			i++;
 		}
 
@@ -159,47 +160,40 @@ static void t_modinfo (void *arg)
 
 }
 
+static void t_fg (struct workkiller *wk) {
+	struct waiter wtr;
+	int i;  
+	/* struct delayed_work { */
+	/* struct work_struct work; */
+	/* struct timer_list timer; */
 
+	/* /\* target workqueue and CPU ->timer uses to queue ->work *\/ */
+	/* struct workqueue_struct *wq; */
+	/* int cpu; */
+	/* }; */
+	
+	struct delayed_work dw;
 
-/* static void a_print_meminfo(void *arg_p) */
-/* { */
-/* 	struct sysinfo values; */
-/* 	si_meminfo(&values); */
-/* 	copy_to_user((void *)arg_p, &values, sizeof(struct my_infos)); */
-/* 	wake_up(&waiter); */
-/* } */
+	dw = to_delayed_work(wk);
+	wtr = container_of(dw, struct waiter, wa_checker);
+	wake_up_interruptible(&cond_wait_queue);
 
+	while(i!=wtr->wa_pids_size){
+		if (!pid_alive(wtr->wa_pids[i])) {
+			wtr->wa_fin = i;
+			wake_up_interruptible(&sleepin);
+			return;
+		}
+		i++;
+	}
+	queue_delayed_work(station, &(wtr->wa_checker),DELAY);
+}
+	
+	
+	
 
+}
 
-
-/* static void t_a_kill(struct work_struct *work) */
-/* { */
-/* 	struct work_killer *wk; */
-/* 	struct pid *target; */
-
-/* 	/\*REMEMBER*\/ */
-/* 	wk = container_of(work, struct work_killer, wk_ws); */
-/* 	/\* On cherche la cible *\/ */
-/* 	target = find_get_pid(wk->wk_pid); */
-/* 	/\* Si une cible a été trouvé*\/ */
-/* 	if (target) */
-/* 		kill_pid(target, work->wk_sig, 1); */
-/* 	/\* Free*\/ */
-/* 	kfree(wk); */
-/* } */
-
-/* static void t_lsmod(void *arg) { */
-/* 	struct module *mod; */
-/* 	char *sret, buf_str[T_BUF_STR]; */
-/* 	int nbref, buf_size = T_BUF_SIZE; */
-
-/* 	sret= kzalloc(T_BUF_SIZE, GFP_KERNEL); */
-
-/* 	mod = THIS_MODULE; */
-/* 	nbref = atomic_read(&(mod->mkobj.kobj.kref.refcount)); */
-
-/* 	//buf_size = buf_size - */
-//}
 
 
 
@@ -219,16 +213,16 @@ long iohandler (struct file *filp,unsigned int cmd, unsigned long arg)
 	case T_KILL:
 		t_kill((void*)arg);
 		break;
-
 	case T_MODINFO:
 		t_modinfo((void *)arg);
 		break;
+	case T_FG: 
+		t_fg((void *) arg);
+		break;	
 	/* case T_LIST: */
 	/* 	t_list((void*)arg); */
 	/* 	break; */
-	/* case T_FG: */
-	/* 	t_fg(); */
-	/* 	break; */
+	/*
 	/* case T_A_KILL: */
 	/* 	t_a_kill(); */
 	/* 	break; */
