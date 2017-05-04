@@ -213,6 +213,7 @@ long iohandler (struct file *filp,unsigned int cmd, unsigned long arg)
 	switch (cmd) {
 
 	case T_MEMINFO:
+		pr_info("meminfo");
 		t_meminfo((void*)arg);
 		break;
 	case T_KILL:
