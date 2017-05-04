@@ -18,6 +18,7 @@ int main(int argc, char ** argv)
 
 	char *ptr = NULL;
 	struct my_infos infos;
+	union arg_infomod info_module;
 
 	if (argc == 1) {
 		perror("arguments");
@@ -67,6 +68,15 @@ int main(int argc, char ** argv)
 			printf("Il faut fournir un nom de module\n");
 			exit(EXIT_FAILURE);
 		}
+
+		info_module.arg = strdup(argv[2]);
+
+		if (ioctl(fd, T_MODINFO, &info_module) == 0) {
+			if (info_module.data.module_core == NULL) {
+				printf("nnnoooooooooo\n");
+			}
+		}
+		else { printf("ioctl modinfo setjdrhgs\n"); }
 	}
 
 	free(ptr);
