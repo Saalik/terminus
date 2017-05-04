@@ -129,6 +129,7 @@ static void t_kill(void *arg_p)
 
 
 
+
 /* static void a_print_meminfo(void *arg_p) */
 /* { */
 /* 	struct sysinfo values; */
@@ -167,7 +168,7 @@ static void t_kill(void *arg_p)
 /* 	nbref = atomic_read(&(mod->mkobj.kobj.kref.refcount)); */
 
 /* 	//buf_size = buf_size - */
-/* } */
+} 
 
 
 
@@ -183,16 +184,18 @@ long iohandler (struct file *filp,unsigned int cmd, unsigned long arg)
 	case T_MEMINFO:
 		t_meminfo((void*)arg);
 		break;
-
+	case T_KILL:
+		t_kill((void*)arg);
+		break;
+	case T_MODINFO:
+		t_lsmod((void *)arg);
+		break;
 	/* case T_LIST: */
 	/* 	t_list((void*)arg); */
 	/* 	break; */
 	/* case T_FG: */
 	/* 	t_fg(); */
 	/* 	break; */
-	case T_KILL:
-		t_kill((void*)arg);
-		break;
 	/* case T_A_KILL: */
 	/* 	t_a_kill(); */
 	/* 	break; */
@@ -200,9 +203,6 @@ long iohandler (struct file *filp,unsigned int cmd, unsigned long arg)
 	/* 	t_wait(); */
 	/* 	break; */
 
-	/* case T_LSMOD: */
-	/* 	t_lsmod((void *)arg); */
-	/* 	break; */
 
 	default:
 		pr_alert("No station found");
