@@ -126,24 +126,37 @@ static void t_kill(void *arg)
 		kill_pid(pid_target, s.sig, 1);
 }
 
-
+/*
+En mode U le pointeur change
+ */
 static void t_modinfo (void *arg)
 {
-	struct module;
-	char *sret, buf_str[T_BUF_STR];
-	int nbref, buf_size = T_BUF_SIZE;
-	
-	sret= kzalloc(T_BUF_SIZE, GFP_KERNEL);
+	struct module *mod;
+	struct infomod im;
 
-	mod = THIS_MODULE;
-	nbref = atomic_read(&(mod->mkobj.kobj.kref.refcount));
-	
-	list_for_each_entry(m,&(THIS_MODULE->list), list)
-	{
-		nbref = atomic_read(&(mod->mkobj.kobj.kref.refcount));
-		if (m->state == 0){
-			
+	char *mod_name;
+	int i = 0;
+   
+	copy_from_user(mod_name, arg, sizeof(char)*T_BUF_STR);
+
+	mod = find_module(mod_name);
+
+	if (mod != NULL){
+		scnprintf(im.name,T_BUF_STR,"%s",mod->name);
+		scnprintf(im.version,T_BUF_STR,"%s",mod->version);
+		im.module_core = mod->module_core;
+		im.num_kp = mod->num_kp;
+		while (i < mod->num_kp ) {
+			scnprintf(im.args,T_BUF_STR,"%s ",mod->args);
+			i++;
+		}
+		
+	}else{
+		im.module_core = NULL;
 	}
+	
+	copy_to_user(arg, (void *) &im, sizeof(struct infomod));
+	
 }
 
 

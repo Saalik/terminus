@@ -43,6 +43,17 @@ struct my_infos {
 };
 
 struct infomod {
+  char  name[T_BUF_STR];
+  char  version[T_BUF_STR];
+  void  *module_core;
+  unsigned int num_kp;
+  char args[T_BUF_STR];
+};
+
   
+union arg_infomod {
+  char *arg;
+  struct infomod data;
+};
 
 #endif /* TERMINUS */
