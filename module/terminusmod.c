@@ -111,6 +111,21 @@ static void t_meminfo(void *arg_p)
 	pr_debug("Given value given to ya!\n");
 }
 
+static void t_kill(void *arg_p)
+{
+	struct signal_s s;
+	struct pid *pid_target;
+	
+	copy_from_user(&s, arg_p, sizeof(struct signal_s));
+	pid_target = find_get_pid(s.pid);
+	
+	/* Si on a bien trouvé un processus correspondant. */
+	if (pid_target)
+		kill_pid(pid_target, s.sig, 1);
+}
+
+
+
 
 /* static void a_print_meminfo(void *arg_p) */
 /* { */
@@ -120,18 +135,7 @@ static void t_meminfo(void *arg_p)
 /* 	wake_up(&waiter); */
 /* } */
 
-/* static void t_kill(void *arg_p) */
-/* { */
-/* 	struct signal_s s; */
-/* 	struct pid *pid_target; */
 
-/* 	copy_from_user(&s, arg_p, sizeof(struct signal_s)); */
-/* 	pid_target = find_get_pid(s.pid); */
-	
-/* 	/\* Si on a bien trouvé un processus correspondant. *\/ */
-/* 	if (pid_target) */
-/* 		kill_pid(pid_target, s.sig, 1); */
-/* } */
 
 
 /* static void t_a_kill(struct work_struct *work) */
@@ -173,6 +177,10 @@ long iohandler (struct file *filp,unsigned int cmd, unsigned long arg)
 	struct meminfo_work miw;
 
 	switch (cmd) {
+
+	case T_MEMINFO:
+		t_meminfo((void*)arg);
+		break;
 		
 	/* case T_LIST: */
 	/* 	t_list((void*)arg); */
@@ -180,18 +188,16 @@ long iohandler (struct file *filp,unsigned int cmd, unsigned long arg)
 	/* case T_FG: */
 	/* 	t_fg(); */
 	/* 	break; */
-	/* case T_KILL: */
-	/* 	t_kill((void*)arg); */
-	/* 	break; */
+	case T_KILL:
+		t_kill((void*)arg);
+		break;
 	/* case T_A_KILL: */
 	/* 	t_a_kill(); */
 	/* 	break; */
 	/* case T_WAIT: */
 	/* 	t_wait(); */
 	/* 	break; */
-	case T_MEMINFO:
-		t_meminfo((void*)arg);
-		break;
+	
 	/* case T_LSMOD: */
 	/* 	t_lsmod((void *)arg); */
 	/* 	break; */
