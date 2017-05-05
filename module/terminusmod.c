@@ -221,6 +221,7 @@ static void t_wait(void *arg)
 	int i, left = 1;
 	struct pid_list pidlist;
 	int *tab;
+	pid *p;
 
 	wtr = kmalloc(sizeof(struct waiter), GFP_KERNEL);
 	INIT_DELAYED_WORK(&(wtr->wa_checker), t_wait_slow);
@@ -238,6 +239,18 @@ static void t_wait(void *arg)
 	    kzalloc(sizeof(struct task_struct *) * pidlist.size, GFP_KERNEL);
 
 	wtr->wa_pids_size = pidlist.size;
+
+	for (i = 0; i < pidlist.size; i++) {
+		p = find_get_pid(tab[i]);
+		if (!p) {
+			goto nope_pid;
+		}
+		wtr->wa_pids[i] = get_pid_task(p, PIDTYPE_PID);
+		if (!wtr->wa_pids[i]) {
+			goto nope_pid;
+		}
+		put_pid(p);
+	}
 
 	while (1) {
 		left = 0;
