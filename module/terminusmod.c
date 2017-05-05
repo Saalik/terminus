@@ -123,7 +123,7 @@ static int __init start (void)
 	pr_info("Terminus created w/devnum %d", dev_num);
 
 	pr_alert("Start to Terminus");
-
+	return 0;
  device_fail:
 	class_destroy(class);
  fail_class:
