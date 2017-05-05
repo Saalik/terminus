@@ -182,6 +182,7 @@ int main(int argc, char ** argv)
 
 		if (lazy_cmp(user_strings[0], "wait") == 0) {
 			t_wait(fd);
+			goto cleanup;
 		}
 
 		printf("usage: %s commande [args]\n", argv[0]);
