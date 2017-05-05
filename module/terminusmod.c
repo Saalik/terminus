@@ -19,7 +19,7 @@ MODULE_AUTHOR("Oskar Viljasaar, Saalik Hatia");
 MODULE_DESCRIPTION("PNL Project UPMC - Terminus");
 
 /*For the purposes of the waitctl */
-DECLARE_WAIT_QUEUE_HEAD(sleep_wait);
+//DECLARE_WAIT_QUEUE_HEAD(sleep_wait);
 
 /* As named device number */
 static dev_t dev_number;
@@ -226,26 +226,34 @@ static void t_modinfo (void *arg)
 static void t_wait(void *arg)
 {
 	int condition = 0;
-	struct delayed_work *dw;
+	//struct delayed_work *dw;
 	struct waiter wtr;
-	int i, left = 0;
+	int i, left = 1;
 	struct pid_list pidlist;
 	int *tab;
-	INIT_DELAYED_WORK(&(wtr->wa_checker));
+	wtr = kzalloc(sizeof(struct waiter), GFP_KERNEL);
+	wtr->wa_checker = kzalloc(sizeof(delayed_work),GFP_KERNEL);
+
+	INIT_DELAYED_WORK(&(wtr->wa_checker),t_wait_slow);
+
+	
+
 	copy_from_user(&pidlist, arg, sizeof(struct pid_list));
+	/* Récupération de la taille de l'array */
 	tab = kmalloc_array(pidlist.size, sizeof(int), GFP_KERNEL);
 	if(tab == NULL){
 		pr_alert("Failed malloc in t_wait");
 		return -1;
 	}
 
+	
+	/* récup le tab en lui même */
 	copy_from_user(tab,pidlist.first, sizeof(int) * pidlist.size);
-
-	wtr = kzalloc(sizeof(struct waiter), GFP_KERNEL);
+        
 	wtr->wa_pids= kzalloc(sizeof(struct task_struct*) * pidlist.size, GFP_KERNEL);
-	wtr->left = 1;
 
 	wtr->wa_pids_size = pidlist.size;
+	
 	while(left){
 		left=0
 		for (i=0 ; i < wtr->wa_pids_size; i++){
@@ -265,13 +273,10 @@ static void t_wait(void *arg)
 		 * t_wait_slow(&condition) en Asynchrone.
 		 */
 		/*Appel de wait_slow */
-
-		wait_event_interruptible(&sleep_wait, condition != 0);
+		wtr->wa_fin=0;
+		wait_event_interruptible(&station, wtr->wa_fin != 0);
 
 	}
-
-
-
 }
 
 /*
@@ -283,8 +288,14 @@ static void t_wait(void *arg)
  * Le delayed work est embedded dans une struct custom, qui contient donc la condition.
  */
 static void t_wait_slow (struct work_struct *work){
-	*condition = 1;
-	wake_up_interruptible(&sleep_wait);
+	struct waiter *wtr;
+	struct delayed_work *dw;
+	
+	dw = to_delayed_work(work);	
+	wtr = container_of(dw, struct waiter, wa_checker);
+  
+	wtr->wa_fin = 1;
+	wake_up_interruptible(&station);
 }
 
 
