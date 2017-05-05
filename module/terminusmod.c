@@ -129,6 +129,7 @@ static void t_kill(void *arg)
 /*
 En mode U le pointeur change
  */
+
 static void t_modinfo (void *arg)
 {
 	struct module *mod;
@@ -160,42 +161,34 @@ static void t_modinfo (void *arg)
 
 }
 
-static void t_fg (struct workkiller *wk) {
-	struct waiter wtr;
-	int i;  
-	/* struct delayed_work { */
-	/* struct work_struct work; */
-	/* struct timer_list timer; */
-
-	/* /\* target workqueue and CPU ->timer uses to queue ->work *\/ */
-	/* struct workqueue_struct *wq; */
-	/* int cpu; */
-	/* }; */
+/* static void t_fg (struct workkiller *wk) { */
+/* 	struct waiter wtr; */
+/* 	int i;   */
+/* 	/\* struct delayed_work { *\/ */
+/* 	/\* struct work_struct work; *\/ */
+/* 	/\* struct timer_list timer; *\/ */
 	
-	struct delayed_work dw;
-
-	dw = to_delayed_work(wk);
-	wtr = container_of(dw, struct waiter, wa_checker);
-	wake_up_interruptible(&cond_wait_queue);
-
-	while(i!=wtr->wa_pids_size){
-		if (!pid_alive(wtr->wa_pids[i])) {
-			wtr->wa_fin = i;
-			wake_up_interruptible(&sleepin);
-			return;
-		}
-		i++;
-	}
-	queue_delayed_work(station, &(wtr->wa_checker),DELAY);
-}
+/* 	/\* /\\* target workqueue and CPU ->timer uses to queue ->work *\\/ *\/ */
+/* 	/\* struct workqueue_struct *wq; *\/ */
+/* 	/\* int cpu; *\/ */
+/* 	/\* }; *\/ */
 	
+/* 	struct delayed_work dw; */
 	
-	
+/* 	dw = to_delayed_work(wk); */
+/* 	wtr = container_of(dw, struct waiter, wa_checker); */
+/* 	wake_up_interruptible(&cond_wait_queue); */
 
-}
-
-
-
+/* 	while(i<wtr->wa_pids_size){ */
+/* 		if (!pid_alive(wtr->wa_pids[i])) { */
+/* 			wtr->wa_fin = i; */
+/* 			wake_up_interruptible(&station); */
+/* 			return; */
+/* 		} */
+/* 		i++; */
+/* 	} */
+/* 	queue_delayed_work(station, &(wtr->wa_checker),DELAY); */
+/* } */
 
 long iohandler (struct file *filp,unsigned int cmd, unsigned long arg)
 {
@@ -216,9 +209,9 @@ long iohandler (struct file *filp,unsigned int cmd, unsigned long arg)
 	case T_MODINFO:
 		t_modinfo((void *)arg);
 		break;
-	case T_FG: 
-		t_fg((void *) arg);
-		break;	
+	/* case T_FG:  */
+	/* 	t_fg((void *) arg); */
+	/* 	break; */	
 	/* case T_LIST: */
 	/* 	t_list((void*)arg); */
 	/* 	break; */
