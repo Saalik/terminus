@@ -6,11 +6,33 @@
 #include <string.h>
 #include <stdio.h>
 #include <fcntl.h>
+#include <errno.h>
 
 /* Include for later .h empty for now */
 #include <terminus.h>
 
 #define T_PATH "/dev/terminus"
+
+ssize_t prompt_user(char *string, size_t count)
+{
+	printf("> ");
+	fflush(stdout);
+
+	return read(STDIN_FILENO, string, count);
+}
+
+void list_commandes()
+{
+	printf("modinfo [module]: infos sur un module noyau\n"
+	       "meminfo: infos sur la mémoire\n"
+	       );
+}
+
+/* s2 est supposé directement être un string */
+size_t lazy_cmp(char *s1, char *s2) {
+	return strncmp(s1, s2, strlen(s2));
+}
+
 
 int main(int argc, char ** argv)
 {
@@ -26,7 +48,6 @@ int main(int argc, char ** argv)
 
 	ptr = info_module.arg;
 
-
 	memset(info_module.arg, 0, T_BUF_STR);
 
 
@@ -34,30 +55,26 @@ int main(int argc, char ** argv)
 
 	if (fd == -1) {
 		perror("open");
+		if (errno == ENOENT)
+			printf("Il faudrait charger le module avant.\n");
 		exit(EXIT_FAILURE);
 	}
 
-	printf("> ");
-	fflush(stdout);
+	memset(user_string, 0, T_BUF_STR);
+	memset(user_strings, 0, T_BUF_STR);
 
-	while ((nb_read = read(STDIN_FILENO, user_string, T_BUF_STR)) >= 0) {
-		memset(user_string, 0, T_BUF_STR);
-		memset(user_strings, 0, T_BUF_STR);
-
-
-
+	while (prompt_user(user_string, T_BUF_STR) > 0) {
 		user_strings[0] = strtok(user_string, " ");
+
 
 		for (i=1; (user_strings[i] = strtok(NULL, " ")) != NULL; i++);
 
-
-		if (argc <= 1) {
-			printf("usage: %s commande [args]\n", argv[0]);
-			printf("lsmod: list all modules\n");
-			return 1;
+		if (lazy_cmp(user_strings[0], "help") == 0) {
+			list_commandes();
+			goto cleanup;
 		}
 
-		if (strcmp(argv[1], "meminfo") == 0) {
+		if (strncmp(user_strings[0], "meminfo", strlen("meminfo")) == 0) {
 			if (ioctl(fd, T_MEMINFO, &infos) == 0) {
 				printf("TotalRam\t%llu pages\n", infos.totalram);
 				printf("SharedRam\t%llu pages\n", infos.sharedram);
@@ -74,10 +91,10 @@ int main(int argc, char ** argv)
 			}
 		}
 
-		if (strcmp(argv[1], "modinfo") == 0) {
-			if (argc <= 3) {
+		if (lazy_cmp(user_strings[0], "modinfo") == 0) {
+			if (user_strings[1] == NULL) {
 				printf("Il faut fournir un nom de module\n");
-				exit(EXIT_FAILURE);
+				goto cleanup;
 			}
 
 			strcpy(info_module.arg, argv[2]);
@@ -100,20 +117,25 @@ int main(int argc, char ** argv)
 			else {
 				printf("ioctl modinfo setjdrhgs\n");
 			}
-			free(ptr);
+
 		}
 
-		if (strcmp(argv[1], "kill") == 0) {
+		if (lazy_cmp(user_strings[0], "kill") == 0) {
 			if (argc < 4) {
 				printf("Il faut fournir un pid et un signal\n");
 			}
 		}
-		printf("> ");
-		fflush(stdout);
 
+		printf("usage: %s commande [args]\n", argv[0]);
+		printf("help pour la liste des commandes\n");
+		goto cleanup;
+	cleanup:
+		memset(user_string, 0, T_BUF_STR);
+		memset(user_strings, 0, T_BUF_STR);
 
 	}
-
+	printf("\n");
+	free(ptr);
 	close(fd);
 
 	return EXIT_SUCCESS;
