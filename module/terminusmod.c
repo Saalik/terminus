@@ -261,6 +261,10 @@ static void t_wait(void *arg)
 
 }
 
+static void t_wait_slow (void *arg){
+
+}
+
 
 
 
