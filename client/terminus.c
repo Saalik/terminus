@@ -126,6 +126,11 @@ void t_wait(int fd)
 	for (i=1; user_strings[i] != NULL; i++)
 		list.size++;
 
+	if (list.size == 0) {
+		printf("Il faut au moins un pid.\n");
+		return;
+	}
+
 	list.first = (int *) malloc(list.size * sizeof(int));
 
 	for (i=0; i < list.size; i++)
