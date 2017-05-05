@@ -219,46 +219,46 @@ static void t_modinfo (void *arg)
 }
 
 
-static void t_wait(void *arg)
-{
-	struct delayed_work *dw;
-	struct waiter wtr;
-	int i, left = 0;
-	struct pid_list pidlist;
-	int *tab;
-	INIT_DELAYED_WORK(&(wtr->wa_checker));
-	copy_from_user(&pidlist, arg, sizeof(struct pid_list));
-	tab = kmalloc_array(pidlist.size, sizeof(int), GFP_KERNEL);
-	if(tab == NULL){
-		pr_alert("Failed malloc in t_wait");
-		return -1;
-	}
+/* static void t_wait(void *arg) */
+/* { */
+/* 	struct delayed_work *dw; */
+/* 	struct waiter wtr; */
+/* 	int i, left = 0; */
+/* 	struct pid_list pidlist; */
+/* 	int *tab; */
+/* 	INIT_DELAYED_WORK(&(wtr->wa_checker)); */
+/* 	copy_from_user(&pidlist, arg, sizeof(struct pid_list)); */
+/* 	tab = kmalloc_array(pidlist.size, sizeof(int), GFP_KERNEL); */
+/* 	if(tab == NULL){ */
+/* 		pr_alert("Failed malloc in t_wait"); */
+/* 		return -1; */
+/* 	} */
 
-	copy_from_user(tab,pidlist.first, sizeof(int) * pidlist.size);
+/* 	copy_from_user(tab,pidlist.first, sizeof(int) * pidlist.size); */
 
-	wtr = kzalloc(sizeof(struct waiter), GFP_KERNEL);
-	wtr->wa_pids= kzalloc(sizeof(struct task_struct*) * pidlist.size, GFP_KERNEL);
-	wtr->left = 1;
+/* 	wtr = kzalloc(sizeof(struct waiter), GFP_KERNEL); */
+/* 	wtr->wa_pids= kzalloc(sizeof(struct task_struct*) * pidlist.size, GFP_KERNEL); */
+/* 	wtr->left = 1; */
 
-	wtr->wa_pids_size = pidlist.size;
-	while(left){
-		left=0
-		for (i=0 ; i < wtr->wa_pids_size; i++){
-			if(wtr->wa_pids[i] != NULL){
-				left=1;
-				if (!pid_alive(wtr->wa_pids[i])) {
-					put_task_struct(wtr->wa_pids[i]);
-					wtr->wa_pids[i] = NULL;
-				}
-			}
-		}
-		if(left)
-			queue_delayed_work(station, &(wtr->wa_checker),DELAY);
-	}
+/* 	wtr->wa_pids_size = pidlist.size; */
+/* 	while(left){ */
+/* 		left=0 */
+/* 		for (i=0 ; i < wtr->wa_pids_size; i++){ */
+/* 			if(wtr->wa_pids[i] != NULL){ */
+/* 				left=1; */
+/* 				if (!pid_alive(wtr->wa_pids[i])) { */
+/* 					put_task_struct(wtr->wa_pids[i]); */
+/* 					wtr->wa_pids[i] = NULL; */
+/* 				} */
+/* 			} */
+/* 		} */
+/* 		if(left) */
+/* 			queue_delayed_work(station, &(wtr->wa_checker),DELAY); */
+/* 	} */
 	
 	
 	
-}
+/* } */
 	
 	
 	
