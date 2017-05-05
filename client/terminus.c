@@ -82,8 +82,9 @@ int main(int argc, char ** argv)
 			}
 
 		}
-		free(ptr);
+
 		else { printf("ioctl modinfo setjdrhgs\n"); }
+				free(ptr);
 	}
 
 	close(fd);
