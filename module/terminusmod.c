@@ -215,13 +215,14 @@ static void t_modinfo(void *arg)
 	copy_to_user(arg, (void *)&im, sizeof(struct infomod));
 }
 
-static void t_wait(void *arg)
+static void t_wait(void *arg, int all)
 {
 	struct waiter *wtr;
 	int i, left = 1;
 	struct pid_list pidlist;
 	int *tab;
 	struct pid *p;
+	
 
 	wtr = kmalloc(sizeof(struct waiter), GFP_KERNEL);
 	INIT_DELAYED_WORK(&(wtr->wa_checker), t_wait_slow);
@@ -263,6 +264,9 @@ static void t_wait(void *arg)
 					put_task_struct(wtr->wa_pids[i]);
 					wtr->wa_pids[i] = NULL;
 				}
+			}else{
+				if(all != 1)
+					break;	
 			}
 		}
 		if (left){
@@ -342,9 +346,11 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 		/*      t_a_kill(); */
 		/*      break; */
 	case T_WAIT:
-		t_wait((void *)arg);
+		t_wait((void *)arg,0);
 		break;
-
+	case T_WAIT_ALL:
+		t_wait((void *)arg,99);
+		break;
 	default:
 		pr_alert("No station found");
 		return -1;
