@@ -55,7 +55,7 @@ void modinfo(int fd, char* module_name)
 	union arg_infomod info_module;
 	char *tmp_ptr = NULL;
 	info_module.arg = (char *) malloc(T_BUF_STR * sizeof(char));
-	tmp_ptr = info_module.arg;
+
 
 	memset(info_module.arg, 0, T_BUF_STR);
 
@@ -63,8 +63,16 @@ void modinfo(int fd, char* module_name)
 		printf("Il faut fournir un nom de module.\n");
 		return;
 	}
-
 	strcpy(info_module.arg, module_name);
+	tmp_ptr = info_module.arg;
+
+	while (tmp_ptr != NULL) {
+		if (*tmp_ptr == '\n')
+			*tmp_ptr = '\0';
+		tmp_ptr++;
+	}
+
+	tmp_ptr = info_module.arg;
 
 	if (ioctl(fd, T_MODINFO, &info_module) == 0) {
 		if (info_module.data.module_core == NULL) {
