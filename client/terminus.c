@@ -38,10 +38,12 @@ int main(int argc, char ** argv)
 
 	while (1) {
 		memset(user_string, 0, T_BUF_STR);
+		memset(user_strings, 0, T_BUF_STR);
+
 		printf("> ");
 		fflush(stdout);
 
-		scanf("%s", user_string);
+		scanf("%s\n", user_string);
 
 		user_strings[0] = strtok(user_string, " ");
 
