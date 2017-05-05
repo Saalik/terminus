@@ -21,6 +21,7 @@ int main(int argc, char ** argv)
 	union arg_infomod info_module;
 	info_module.arg = (char *) malloc(T_BUF_STR * sizeof(char));
 	memset(info_module.arg, 0, T_BUF_STR);
+	ptr = info_module.arg;
 
 	if (argc == 1) {
 		perror("arguments");
@@ -36,12 +37,6 @@ int main(int argc, char ** argv)
 		exit(EXIT_FAILURE);
 	}
 
-	ptr = (char *) malloc(T_BUF_SIZE * sizeof(char));
-
-	if (ptr == NULL) {
-		perror("malloc");
-		exit(EXIT_FAILURE);
-	}
 
 	if (argc <= 1) {
 		printf("usage: %s commande [args]\n", argv[0]);
@@ -75,13 +70,23 @@ int main(int argc, char ** argv)
 		printf("info_module.arg = %s\n", info_module.arg);
 		if (ioctl(fd, T_MODINFO, &info_module) == 0) {
 			if (info_module.data.module_core == NULL) {
-				printf("nnnoooooooooo\n");
+				printf("Module pas trouvé\n");
 			}
+			else {
+				printf("%s\n%s\n%p\n%d arguments:\n%s\n",
+				       info_module.data.name,
+				       info_module.data.version,
+				       info_module.data.module_core,
+				       info_module.data.num_kp,
+				       info_module.data.args);
+			}
+
 		}
+
 		else { printf("ioctl modinfo setjdrhgs\n"); }
+				free(ptr);
 	}
 
-	free(ptr);
 	close(fd);
 
 	return EXIT_SUCCESS;
