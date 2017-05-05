@@ -17,7 +17,8 @@ MODULE_AUTHOR("Oskar Viljasaar, Saalik Hatia");
 MODULE_DESCRIPTION("PNL Project UPMC - Terminus");
 
 /* As named device number */
-int dev_num;
+static int dev_num;
+static dev_t dev_number;
 
 struct workkiller {
 	struct work_struct wk_ws;
@@ -45,12 +46,24 @@ struct meminfo_work {
 	struct sysinfo mw_values;
 };
 
+static int t_open(struct inode *i, struct file *f)
+{
+	return 0;
+}
+
+static int t_close(struct inode *i, struct file *f)
+{
+	return 0;
+}
 
 long iohandler (struct file *filp,
 		unsigned int cmd,
 		unsigned long arg);
 
 static const struct file_operations fops = {
+	.owner = THIS_MODULE,
+	.open = t_open,
+	.release = t_close,
 	.unlocked_ioctl = iohandler,
 };
 
@@ -69,8 +82,10 @@ static bool cond;
 
 static int __init start (void)
 {
-
-	dev_num = register_chrdev(0, "terminus", &fops);
+	int result = 0;
+	result = alloc_chrdev_region(&dev_number, 0, 1, "terminus");
+	//	dev_num = register_chrdev(0, "terminus", &fops);
+	dev_num = MAJOR(dev_number);
 	station = create_workqueue("workstation");
 
 
@@ -91,7 +106,7 @@ static void __exit end (void)
 
 	destroy_workqueue(station);
 	pr_alert("Terminus");
-
+	unregister_chrdev_region(dev_number, 1);
 	return;
 }
 
@@ -167,14 +182,14 @@ static void t_modinfo (void *arg)
 /* 	/\* struct delayed_work { *\/ */
 /* 	/\* struct work_struct work; *\/ */
 /* 	/\* struct timer_list timer; *\/ */
-	
+
 /* 	/\* /\\* target workqueue and CPU ->timer uses to queue ->work *\\/ *\/ */
 /* 	/\* struct workqueue_struct *wq; *\/ */
 /* 	/\* int cpu; *\/ */
 /* 	/\* }; *\/ */
-	
+
 /* 	struct delayed_work dw; */
-	
+
 /* 	dw = to_delayed_work(wk); */
 /* 	wtr = container_of(dw, struct waiter, wa_checker); */
 /* 	wake_up_interruptible(&cond_wait_queue); */
@@ -189,6 +204,7 @@ static void t_modinfo (void *arg)
 /* 	} */
 /* 	queue_delayed_work(station, &(wtr->wa_checker),DELAY); */
 /* } */
+
 
 long iohandler (struct file *filp,unsigned int cmd, unsigned long arg)
 {
@@ -211,7 +227,7 @@ long iohandler (struct file *filp,unsigned int cmd, unsigned long arg)
 		break;
 	/* case T_FG:  */
 	/* 	t_fg((void *) arg); */
-	/* 	break; */	
+	/* 	break; */
 	/* case T_LIST: */
 	/* 	t_list((void*)arg); */
 	/* 	break; */
