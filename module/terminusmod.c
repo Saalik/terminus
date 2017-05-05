@@ -27,8 +27,7 @@ static struct class *class;
 
 struct workkiller {
 	struct work_struct wk_ws;
-	int wk_pid;
-	int wk_sig;
+	struct signal_s signal;
 };
 
 struct waiter {
@@ -275,6 +274,21 @@ static void t_wait_slow(struct work_struct *work)
 
 	wtr->wa_fin = 1;
 	wake_up_interruptible(&cond_wait_queue);
+}
+
+static void t_async_kill(struct work_struct *wurk)
+{
+	struct workkiller *w;
+	struct pid *pid_tmp;
+
+	w = container_of(wurk, struct workkiller, wk_ws);
+
+	pid_tmp = find_get_pid(w->signal.pid);
+
+	if (pid_tmp)
+		kill_pid(pid_tmp, w->signal.sig, 1);
+
+	kfree(w);
 }
 
 long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
