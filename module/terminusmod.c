@@ -126,7 +126,7 @@ static int __init start (void)
 	}
 	pr_info("Terminus created w/devnum %d", MAJOR(dev_number));
 
-	pr_alert("Start to Terminus");
+	pr_alert("Start to Terminus\n");
 	return 0;
  device_fail:
 	//	device_destroy(class, dev_number);
