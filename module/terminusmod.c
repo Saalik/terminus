@@ -6,6 +6,8 @@
 #include <linux/wait.h>
 #include <linux/pid.h>
 #include <linux/fs.h>
+#include <linux/device.h>
+#include <linux/cdev.h>
 #include <linux/uaccess.h>
 #include <linux/mm.h>
 
@@ -19,6 +21,8 @@ MODULE_DESCRIPTION("PNL Project UPMC - Terminus");
 /* As named device number */
 static int dev_num;
 static dev_t dev_number;
+static struct cdev c_dev;
+static struct class *class;
 
 struct workkiller {
 	struct work_struct wk_ws;
@@ -83,7 +87,30 @@ static bool cond;
 static int __init start (void)
 {
 	int result = 0;
+	struct device *dev_return;
+
 	result = alloc_chrdev_region(&dev_number, 0, 1, "terminus");
+
+	if (result < 0) goto fail;
+
+	result = cdev_add(&c_dev, dev_number, 1);
+
+	if (result < 0) goto fail;
+
+	class = class_create(THIS_MODULE, "char");
+
+	if (IS_ERR(class)) {
+		result = PTR_ERR(class);
+		goto fail_class;
+	}
+
+	dev_return = device_create(class, NULL, dev_num, NULL, "terminus");
+
+	if (IS_ERR(dev_return)) {
+		result = PTR_ERR(dev_return);
+		goto device_fail;
+	}
+
 	//	dev_num = register_chrdev(0, "terminus", &fops);
 	dev_num = MAJOR(dev_number);
 	station = create_workqueue("workstation");
@@ -96,7 +123,15 @@ static int __init start (void)
 	pr_info("Terminus created w/devnum %d", dev_num);
 
 	pr_alert("Start to Terminus");
-	return 0;
+
+ device_fail:
+	class_destroy(class);
+ fail_class:
+	cdev_del(&c_dev);
+	unregister_chrdev_region(dev_number, 1);
+
+ fail:
+	return result;
 }
 
 
