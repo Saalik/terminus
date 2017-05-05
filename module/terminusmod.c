@@ -19,7 +19,6 @@ MODULE_AUTHOR("Oskar Viljasaar, Saalik Hatia");
 MODULE_DESCRIPTION("PNL Project UPMC - Terminus");
 
 /*For the purposes of the waitctl */
-//DECLARE_WAIT_QUEUE_HEAD(sleep_wait);
 
 /* As named device number */
 static dev_t dev_number;
@@ -32,15 +31,12 @@ struct workkiller {
 	int wk_sig;
 };
 
-
 struct waiter {
 	struct delayed_work wa_checker;
 	int wa_fin;
 	struct task_struct **wa_pids;
 	int wa_pids_size;
 };
-
-
 
 struct lsmod_work {
 	struct work_struct lw_ws;
@@ -62,9 +58,7 @@ static int t_close(struct inode *i, struct file *f)
 	return 0;
 }
 
-long iohandler (struct file *filp,
-		unsigned int cmd,
-		unsigned long arg);
+static long iohandler(struct file *filp, unsigned int cmd, unsigned long arg);
 
 static const struct file_operations fops = {
 	.owner = THIS_MODULE,
@@ -83,17 +77,17 @@ static const struct file_operations fops = {
 static struct workqueue_struct *station;
 
 DECLARE_WAIT_QUEUE_HEAD(cond_wait_queue);
-static bool cond;
+static void t_wait_slow(struct work_struct *work);
 
-
-static int __init start (void)
+static int __init start(void)
 {
 	int result = 0;
 	struct device *dev_return;
 
 	result = alloc_chrdev_region(&dev_number, 0, 1, "terminus");
 
-	if (result < 0) goto fail;
+	if (result < 0)
+		goto fail;
 
 	cdev_init(&c_dev, &fops);
 	result = cdev_add(&c_dev, dev_number, 1);
@@ -118,12 +112,10 @@ static int __init start (void)
 		pr_alert("device_create\n");
 		goto device_fail;
 	}
-
-	//	dev_num = register_chrdev(0, "terminus", &fops);
+	/*dev_num = register_chrdev(0, "terminus", &fops); */
 	station = create_workqueue("workstation");
 
-
-	if ( station == NULL ) {
+	if (station == NULL) {
 		pr_alert("Workqueue station creation failed in init");
 		return -1;
 	}
@@ -132,7 +124,7 @@ static int __init start (void)
 	pr_alert("Start to Terminus\n");
 	return 0;
  device_fail:
-	//	device_destroy(class, dev_number);
+	/*device_destroy(class, dev_number); */
 	class_destroy(class);
  fail_class:
 	cdev_del(&c_dev);
@@ -142,9 +134,7 @@ static int __init start (void)
 	return result;
 }
 
-
-
-static void __exit end (void)
+static void __exit end(void)
 {
 
 	destroy_workqueue(station);
@@ -153,15 +143,12 @@ static void __exit end (void)
 	class_destroy(class);
 	cdev_del(&c_dev);
 	unregister_chrdev_region(dev_number, 1);
-	return;
 }
 
 module_init(start);
 module_exit(end);
 
-
-
-//static void t_list(void *arg) {}
+/* static void t_list(void *arg) {} */
 
 static void t_meminfo(void *arg)
 {
@@ -191,7 +178,7 @@ static void t_kill(void *arg)
 En mode U le pointeur change
  */
 
-static void t_modinfo (void *arg)
+static void t_modinfo(void *arg)
 {
 	struct module *mod;
 	struct infomod im;
@@ -199,82 +186,72 @@ static void t_modinfo (void *arg)
 	char *mod_name = NULL;
 	int i = 0;
 
-	copy_from_user(&info_mod, arg, sizeof(char)*T_BUF_STR);
+	copy_from_user(&info_mod, arg, sizeof(char) * T_BUF_STR);
 	mod_name = info_mod.arg;
 	pr_info("module name %s\n", mod_name);
 	mod = find_module(mod_name);
 
-	if (mod != NULL){
-		scnprintf(im.name,T_BUF_STR,"%s",mod->name);
-		scnprintf(im.version,T_BUF_STR,"%s",mod->version);
+	if (mod != NULL) {
+		scnprintf(im.name, T_BUF_STR, "%s", mod->name);
+		scnprintf(im.version, T_BUF_STR, "%s", mod->version);
 		im.module_core = mod->module_core;
 		im.num_kp = mod->num_kp;
-		while (i < mod->num_kp ) {
-			/*kernel paramkp*/
-			scnprintf(im.args,T_BUF_STR,"%s ",mod->kp[i].name);
+		while (i < mod->num_kp) {
+			/*kernel paramkp */
+			scnprintf(im.args, T_BUF_STR, "%s ", mod->kp[i].name);
 			i++;
 		}
 
-	}else{
+	} else {
 		im.module_core = NULL;
 	}
 
-	copy_to_user(arg, (void *) &im, sizeof(struct infomod));
+	copy_to_user(arg, (void *)&im, sizeof(struct infomod));
 }
-
 
 static void t_wait(void *arg)
 {
-	int condition = 0;
-	//struct delayed_work *dw;
-	struct waiter wtr;
+	struct waiter *wtr;
 	int i, left = 1;
 	struct pid_list pidlist;
 	int *tab;
-	wtr = kzalloc(sizeof(struct waiter), GFP_KERNEL);
-	wtr->wa_checker = kzalloc(sizeof(delayed_work),GFP_KERNEL);
 
-	INIT_DELAYED_WORK(&(wtr->wa_checker),t_wait_slow);
-
-	
-
+	wtr = kmalloc(sizeof(struct waiter), GFP_KERNEL);
+	INIT_DELAYED_WORK(&(wtr->wa_checker), t_wait_slow);
 	copy_from_user(&pidlist, arg, sizeof(struct pid_list));
 	/* Récupération de la taille de l'array */
 	tab = kmalloc_array(pidlist.size, sizeof(int), GFP_KERNEL);
-	if(tab == NULL){
-		pr_alert("Failed malloc in t_wait");
-		return -1;
-	}
-
-	
+	if (tab == NULL)
+		return;
 	/* récup le tab en lui même */
-	copy_from_user(tab,pidlist.first, sizeof(int) * pidlist.size);
-        
-	wtr->wa_pids= kzalloc(sizeof(struct task_struct*) * pidlist.size, GFP_KERNEL);
+	copy_from_user(tab, pidlist.first, sizeof(int) * pidlist.size);
+
+	wtr->wa_pids =
+	    kzalloc(sizeof(struct task_struct *) * pidlist.size, GFP_KERNEL);
 
 	wtr->wa_pids_size = pidlist.size;
-	
-	while(left){
-		left=0
-		for (i=0 ; i < wtr->wa_pids_size; i++){
-			if(wtr->wa_pids[i] != NULL){
-				left=1;
+
+	while (left) {
+		left = 0;
+		for (i = 0; i < wtr->wa_pids_size; i++) {
+			if (wtr->wa_pids[i] != NULL) {
+				left = 1;
 				if (!pid_alive(wtr->wa_pids[i])) {
 					put_task_struct(wtr->wa_pids[i]);
 					wtr->wa_pids[i] = NULL;
 				}
 			}
 		}
-		if(left)
-			queue_delayed_work(station, &(wtr->wa_checker),DELAY);
+		if (left)
+			queue_delayed_work(station, &(wtr->wa_checker), DELAY);
 
 		/*
 		 * Ralentir la boucle
 		 * t_wait_slow(&condition) en Asynchrone.
 		 */
 		/*Appel de wait_slow */
-		wtr->wa_fin=0;
-		wait_event_interruptible(&station, wtr->wa_fin != 0);
+		wtr->wa_fin = 0;
+		wait_event_interruptible(cond_wait_queue, wtr->wa_fin != -1);
 
 	}
 }
@@ -285,85 +262,53 @@ static void t_wait(void *arg)
  * Change la condition et wake le process
  * Wait_slow est appelée car elle est l'un des attributs d'une work_struct
  * qui contient un pointeur vers un delayed work.
- * Le delayed work est embedded dans une struct custom, qui contient donc la condition.
+ * Le delayed work est embedded dans une struct custom, qui contient
+ * donc la condition.
  */
-static void t_wait_slow (struct work_struct *work){
+static void t_wait_slow(struct work_struct *work)
+{
 	struct waiter *wtr;
 	struct delayed_work *dw;
-	
-	dw = to_delayed_work(work);	
+
+	dw = to_delayed_work(work);
 	wtr = container_of(dw, struct waiter, wa_checker);
-  
+
 	wtr->wa_fin = 1;
-	wake_up_interruptible(&station);
+	wake_up_interruptible(&cond_wait_queue);
 }
 
-
-
-
-/* static void t_fg (struct workkiller *wk) { */
-/* 	struct waiter wtr; */
-/* 	int i;   */
-/* 	/\* struct delayed_work { *\/ */
-/* 	/\* struct work_struct work; *\/ */
-/* 	/\* struct timer_list timer; *\/ */
-
-/* 	/\* /\\* target workqueue and CPU ->timer uses to queue ->work *\\/ *\/ */
-/* 	/\* struct workqueue_struct *wq; *\/ */
-/* 	/\* int cpu; *\/ */
-/* 	/\* }; *\/ */
-
-/* 	struct delayed_work dw; */
-
-/* 	dw = to_delayed_work(wk); */
-/* 	wtr = container_of(dw, struct waiter, wa_checker); */
-/* 	wake_up_interruptible(&cond_wait_queue); */
-
-/* 	while(i<wtr->wa_pids_size){ */
-/* 		if (!pid_alive(wtr->wa_pids[i])) { */
-/* 			wtr->wa_fin = i; */
-/* 			wake_up_interruptible(&station); */
-/* 			return; */
-/* 		} */
-/* 		i++; */
-/* 	} */
-/* 	queue_delayed_work(station, &(wtr->wa_checker),DELAY); */
-/* } */
-
-
-long iohandler (struct file *filp,unsigned int cmd, unsigned long arg)
+long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 {
-	/* All the structs*/
-	struct workkiller wk;
-	struct lsmod_work lsw;
-	struct meminfo_work miw;
+	/* All the structs */
+	/* struct workkiller wk; */
+	/* struct lsmod_work lsw; */
+	/* struct meminfo_work miw; */
 
 	switch (cmd) {
 
 	case T_MEMINFO:
 		pr_info("meminfo");
-		t_meminfo((void*)arg);
+		t_meminfo((void *)arg);
 		break;
 	case T_KILL:
-		t_kill((void*)arg);
+		t_kill((void *)arg);
 		break;
 	case T_MODINFO:
 		t_modinfo((void *)arg);
 		break;
-	/* case T_FG:  */
-	/* 	t_fg((void *) arg); */
-	/* 	break; */
-	/* case T_LIST: */
-	/* 	t_list((void*)arg); */
-	/* 	break; */
-	/*
-	/* case T_A_KILL: */
-	/* 	t_a_kill(); */
-	/* 	break; */
-	/* case T_WAIT: */
-	/* 	t_wait(); */
-	/* 	break; */
+		/* case T_FG:  */
+		/*      t_fg((void *) arg); */
+		/*      break; */
+		/* case T_LIST: */
+		/*      t_list((void*)arg); */
+		/*      break; */
 
+		/* case T_A_KILL: */
+		/*      t_a_kill(); */
+		/*      break; */
+	case T_WAIT:
+		t_wait((void *)arg);
+		break;
 
 	default:
 		pr_alert("No station found");
