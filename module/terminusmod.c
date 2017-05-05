@@ -18,6 +18,9 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Oskar Viljasaar, Saalik Hatia");
 MODULE_DESCRIPTION("PNL Project UPMC - Terminus");
 
+/*For the purposes of the waitctl */
+DECLARE_WAIT_QUEUE_HEAD(sleep_wait);
+
 /* As named device number */
 static dev_t dev_number;
 static struct cdev c_dev;
@@ -222,6 +225,7 @@ static void t_modinfo (void *arg)
 
 static void t_wait(void *arg)
 {
+	int condition = 0;
 	struct delayed_work *dw;
 	struct waiter wtr;
 	int i, left = 0;
@@ -255,14 +259,32 @@ static void t_wait(void *arg)
 		}
 		if(left)
 			queue_delayed_work(station, &(wtr->wa_checker),DELAY);
+
+		/*
+		 * Ralentir la boucle
+		 * t_wait_slow(&condition) en Asynchrone.
+		 */
+		/*Appel de wait_slow */
+
+		wait_event_interruptible(&sleep_wait, condition != 0);
+
 	}
 
 
 
 }
 
-static void t_wait_slow (void *arg){
-
+/*
+ * Appelé au cours d'un wait et aprsès un nombre
+ * donné de ticks.
+ * Change la condition et wake le process
+ * Wait_slow est appelée car elle est l'un des attributs d'une work_struct
+ * qui contient un pointeur vers un delayed work.
+ * Le delayed work est embedded dans une struct custom, qui contient donc la condition.
+ */
+static void t_wait_slow (struct work_struct *work){
+	*condition = 1;
+	wake_up_interruptible(&sleep_wait);
 }
 
 
