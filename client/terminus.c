@@ -115,7 +115,7 @@ void kill(int fd, char* pid, char* sig)
 		perror("ioctl");
 }
 
-void t_wait(int fd)
+void t_wait(int fd, int wait_all)
 {
 	struct pid_list list;
 	int i;
@@ -135,10 +135,16 @@ void t_wait(int fd)
 
 	for (i=0; i < list.size; i++)
 		list.first[i] = atoi(user_strings[i+1]);
-
-	if (ioctl(fd, T_WAIT, &list) != 0) {
-		perror("ioctl");
-		return;
+	if (wait_all) {
+		if (ioctl(fd, T_WAIT_ALL, &list) != 0) {
+			perror("ioctl");
+			return;
+		}
+	} else {
+		if (ioctl(fd, T_WAIT, &list) != 0) {
+			perror("ioctl");
+			return;
+		}
 	}
 }
 
@@ -187,8 +193,12 @@ int main(int argc, char ** argv)
 		}
 
 		if (lazy_cmp(user_strings[0], "wait") == 0) {
-			t_wait(fd);
+			t_wait(fd, 0);
 			goto cleanup;
+		}
+
+		if (lazy_cmp(user_strings[0], "waitall") == 0) {
+			t_wait(fd, 1);
 		}
 
 		printf("usage: %s commande [args]\n", argv[0]);
