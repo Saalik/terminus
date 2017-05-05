@@ -69,8 +69,10 @@ void modinfo(int fd, char* module_name)
 	while (tmp_ptr != NULL) {
 		printf("%c", *tmp_ptr);
 		fflush(stdout);
-		if (*tmp_ptr == '\n')
+		if (*tmp_ptr == '\n') {
 			*tmp_ptr = '\0';
+			break;
+		}
 		tmp_ptr++;
 	}
 	printf("test2\n");
