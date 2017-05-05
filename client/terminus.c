@@ -10,7 +10,7 @@
 /* Include for later .h empty for now */
 #include <terminus.h>
 
-#define T_PATH "/tmp/terminus"
+#define T_PATH "/dev/terminus"
 
 int main(int argc, char ** argv)
 {

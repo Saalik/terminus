@@ -19,7 +19,6 @@ MODULE_AUTHOR("Oskar Viljasaar, Saalik Hatia");
 MODULE_DESCRIPTION("PNL Project UPMC - Terminus");
 
 /* As named device number */
-static int dev_num;
 static dev_t dev_number;
 static struct cdev c_dev;
 static struct class *class;
@@ -93,26 +92,31 @@ static int __init start (void)
 
 	if (result < 0) goto fail;
 
+	cdev_init(&c_dev, &fops);
 	result = cdev_add(&c_dev, dev_number, 1);
 
-	if (result < 0) goto fail;
+	if (result < 0) {
+		pr_alert("cdev_add\n");
+		goto fail;
+	}
 
 	class = class_create(THIS_MODULE, "char");
 
 	if (IS_ERR(class)) {
 		result = PTR_ERR(class);
+		pr_alert("class_create\n");
 		goto fail_class;
 	}
 
-	dev_return = device_create(class, NULL, dev_num, NULL, "terminus");
+	dev_return = device_create(class, NULL, dev_number, NULL, "terminus");
 
 	if (IS_ERR(dev_return)) {
 		result = PTR_ERR(dev_return);
+		pr_alert("device_create\n");
 		goto device_fail;
 	}
 
 	//	dev_num = register_chrdev(0, "terminus", &fops);
-	dev_num = MAJOR(dev_number);
 	station = create_workqueue("workstation");
 
 
@@ -120,11 +124,12 @@ static int __init start (void)
 		pr_alert("Workqueue station creation failed in init");
 		return -1;
 	}
-	pr_info("Terminus created w/devnum %d", dev_num);
+	pr_info("Terminus created w/devnum %d", MAJOR(dev_number));
 
 	pr_alert("Start to Terminus");
 	return 0;
  device_fail:
+	//	device_destroy(class, dev_number);
 	class_destroy(class);
  fail_class:
 	cdev_del(&c_dev);
@@ -141,6 +146,9 @@ static void __exit end (void)
 
 	destroy_workqueue(station);
 	pr_alert("Terminus");
+	device_destroy(class, dev_number);
+	class_destroy(class);
+	cdev_del(&c_dev);
 	unregister_chrdev_region(dev_number, 1);
 	return;
 }
