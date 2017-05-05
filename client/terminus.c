@@ -13,6 +13,8 @@
 
 #define T_PATH "/dev/terminus"
 
+char *user_strings[T_BUF_STR];
+
 ssize_t prompt_user(char *string, size_t count)
 {
 	printf("> ");
@@ -25,6 +27,7 @@ void list_commandes()
 {
 	printf("modinfo [module]: infos sur un module noyau\n"
 	       "meminfo: infos sur la mémoire\n"
+	       "kill [pid] [signal]: envoyer un signal à un processus\n"
 	       );
 }
 
@@ -33,18 +36,71 @@ size_t lazy_cmp(char *s1, char *s2) {
 	return strncmp(s1, s2, strlen(s2));
 }
 
+void meminfo(int fd)
+{
+	struct my_infos infos;
+	if (ioctl(fd, T_MEMINFO, &infos) == 0) {
+		printf("TotalRam\t%llu pages\n", infos.totalram);
+		printf("SharedRam\t%llu pages\n", infos.sharedram);
+		printf("FreeRam\t\t%llu pages\n", infos.freeram);
+		printf("BufferRam\t%llu pages\n", infos.bufferram);
+		printf("TotalHigh\t%llu pages\n", infos.totalhigh);
+		printf("FreeHigh\t%llu pages\n", infos.freehigh);
+		printf("Memory unit\t%lu bytes\n", infos.mem_unit);
+	} else perror("ioctl");
+}
+
+void modinfo(int fd, char* module_name)
+{
+	union arg_infomod info_module;
+	info_module.arg = NULL;
+	if (module_name == NULL) {
+		printf("Il faut fournir un nom de module.\n");
+		return;
+	}
+
+	strcpy(info_module.arg, module_name);
+
+	if (ioctl(fd, T_MODINFO, &info_module) == 0) {
+		if (info_module.data.module_core == NULL) {
+			printf("Module %s pas trouvé.\n", module_name);
+			return;
+		}
+		else {
+			printf("%s\n%s\n%p\n%d arguments:\n%s\n",
+			       info_module.data.name,
+			       info_module.data.version,
+			       info_module.data.module_core,
+			       info_module.data.num_kp,
+			       info_module.data.args);
+			return;
+		}
+	} else perror("ioctl");
+}
+
+void kill(int fd, char* pid, char* sig)
+{
+	struct signal_s signal;
+	if ((pid == NULL) || (sig == NULL)) {
+		printf("Il faut fournir un pid et un signal\n");
+		return;
+	}
+
+	signal.pid = atoi(pid);
+	signal.sig = atoi(sig);
+
+	if (ioctl(fd, T_KILL, &signal) != 0)
+		perror("ioctl");
+}
 
 int main(int argc, char ** argv)
 {
 	int fd = 0;
 	int i;
-	int nb_read = 0;
 	char user_string[T_BUF_STR];
-	char *user_strings[T_BUF_STR];
+
 	char *ptr = NULL;
-	struct my_infos infos;
 	union arg_infomod info_module;
-	struct signal_s sig;
 	info_module.arg = (char *) malloc(T_BUF_STR * sizeof(char));
 
 	ptr = info_module.arg;
@@ -75,71 +131,24 @@ int main(int argc, char ** argv)
 			goto cleanup;
 		}
 
-		if (strncmp(user_strings[0], "meminfo", strlen("meminfo")) == 0) {
-			if (ioctl(fd, T_MEMINFO, &infos) == 0) {
-				printf("TotalRam\t%llu pages\n", infos.totalram);
-				printf("SharedRam\t%llu pages\n", infos.sharedram);
-				printf("FreeRam\t\t%llu pages\n", infos.freeram);
-				printf("BufferRam\t%llu pages\n", infos.bufferram);
-				printf("TotalHigh\t%llu pages\n", infos.totalhigh);
-				printf("FreeHigh\t%llu pages\n", infos.freehigh);
-				printf("Memory unit\t%llu bytes\n", infos.mem_unit);
-				continue;
-			}
-			else {
-				perror("ioctl");
-				exit(EXIT_FAILURE);
-			}
+		if (lazy_cmp(user_strings[0], "meminfo") == 0) {
+			meminfo(fd);
+			goto cleanup;
 		}
 
 		if (lazy_cmp(user_strings[0], "modinfo") == 0) {
-			if (user_strings[1] == NULL) {
-				printf("Il faut fournir un nom de module\n");
-				goto cleanup;
-			}
-
-			strcpy(info_module.arg, argv[2]);
-			printf("info_module.arg = %s\n", info_module.arg);
-			if (ioctl(fd, T_MODINFO, &info_module) == 0) {
-				if (info_module.data.module_core == NULL) {
-					printf("Module pas trouvé\n");
-				}
-				else {
-					printf("%s\n%s\n%p\n%d arguments:\n%s\n",
-					       info_module.data.name,
-					       info_module.data.version,
-					       info_module.data.module_core,
-					       info_module.data.num_kp,
-					       info_module.data.args);
-				}
-
-			}
-
-			else {
-				printf("ioctl modinfo setjdrhgs\n");
-			}
+			modinfo(fd, user_strings[1]);
 			goto cleanup;
 		}
 
 		if (lazy_cmp(user_strings[0], "kill") == 0) {
-			if (user_strings[2] == NULL) {
-				printf("Il faut fournir un pid et un signal\n");
-				goto cleanup;
-			}
-
-			sig.pid = atoi(user_strings[1]);
-			sig.sig = atoi(user_strings[2]);
-
-			if (ioctl(fd, T_KILL, &sig) != 0) {
-				perror("ioctl");
-			}
-
+			kill(fd, user_strings[1], user_strings[2]);
 			goto cleanup;
 		}
 
 		printf("usage: %s commande [args]\n", argv[0]);
 		printf("help pour la liste des commandes\n");
-		goto cleanup;
+
 	cleanup:
 		memset(user_string, 0, T_BUF_STR);
 		memset(user_strings, 0, T_BUF_STR);
