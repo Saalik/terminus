@@ -65,13 +65,13 @@ void modinfo(int fd, char* module_name)
 	}
 	strcpy(info_module.arg, module_name);
 	tmp_ptr = info_module.arg;
-
+	printf("test\n");
 	while (tmp_ptr != NULL) {
 		if (*tmp_ptr == '\n')
 			*tmp_ptr = '\0';
 		tmp_ptr++;
 	}
-
+	printf("test2\n");
 	tmp_ptr = info_module.arg;
 
 	if (ioctl(fd, T_MODINFO, &info_module) == 0) {
