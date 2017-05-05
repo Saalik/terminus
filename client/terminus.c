@@ -16,6 +16,7 @@ int main(int argc, char ** argv)
 {
 	int fd = 0;
 	int i;
+	int nb_read = 0;
 	char user_string[T_BUF_STR];
 	char *user_strings[T_BUF_STR];
 	char *ptr = NULL;
@@ -36,14 +37,14 @@ int main(int argc, char ** argv)
 		exit(EXIT_FAILURE);
 	}
 
-	while (1) {
+	printf("> ");
+	fflush(stdout);
+
+	while ((nb_read = read(STDIN_FILENO, user_string, T_BUF_STR)) >= 0) {
 		memset(user_string, 0, T_BUF_STR);
 		memset(user_strings, 0, T_BUF_STR);
 
-		printf("> ");
-		fflush(stdout);
 
-		scanf("%s\n", user_string);
 
 		user_strings[0] = strtok(user_string, " ");
 
@@ -107,6 +108,9 @@ int main(int argc, char ** argv)
 				printf("Il faut fournir un pid et un signal\n");
 			}
 		}
+		printf("> ");
+		fflush(stdout);
+
 
 	}
 
