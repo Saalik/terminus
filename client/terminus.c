@@ -53,7 +53,12 @@ void meminfo(int fd)
 void modinfo(int fd, char* module_name)
 {
 	union arg_infomod info_module;
-	info_module.arg = NULL;
+	char *tmp_ptr = NULL;
+	info_module.arg = (char *) malloc(T_BUF_STR * sizeof(char));
+	tmp_ptr = info_module.arg;
+
+	memset(info_module.arg, 0, T_BUF_STR);
+
 	if (module_name == NULL) {
 		printf("Il faut fournir un nom de module.\n");
 		return;
@@ -64,6 +69,7 @@ void modinfo(int fd, char* module_name)
 	if (ioctl(fd, T_MODINFO, &info_module) == 0) {
 		if (info_module.data.module_core == NULL) {
 			printf("Module %s pas trouvé.\n", module_name);
+			free(tmp_ptr);
 			return;
 		}
 		else {
@@ -73,9 +79,12 @@ void modinfo(int fd, char* module_name)
 			       info_module.data.module_core,
 			       info_module.data.num_kp,
 			       info_module.data.args);
+			free(tmp_ptr);
 			return;
 		}
 	} else perror("ioctl");
+
+	free(tmp_ptr);
 }
 
 void kill(int fd, char* pid, char* sig)
@@ -98,15 +107,6 @@ int main(int argc, char ** argv)
 	int fd = 0;
 	int i;
 	char user_string[T_BUF_STR];
-
-	char *ptr = NULL;
-	union arg_infomod info_module;
-	info_module.arg = (char *) malloc(T_BUF_STR * sizeof(char));
-
-	ptr = info_module.arg;
-
-	memset(info_module.arg, 0, T_BUF_STR);
-
 
 	fd = open(T_PATH, O_RDWR);
 
@@ -155,7 +155,7 @@ int main(int argc, char ** argv)
 
 	}
 	printf("\n");
-	free(ptr);
+
 	close(fd);
 
 	return EXIT_SUCCESS;
