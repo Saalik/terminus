@@ -255,7 +255,7 @@ static void t_wait(void *arg)
 		/*Appel de wait_slow */
 		wtr->wa_fin = 0;
 		pr_info("Avant wait interrupt");
-		wait_event_interruptible(cond_wait_queue, wtr->wa_fin != -1);
+		wait_event_interruptible(cond_wait_queue, wtr->wa_fin == -1);
 		pr_info("près wait interrupt");
 
 	}
