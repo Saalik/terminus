@@ -28,6 +28,7 @@ void list_commandes()
 	printf("modinfo [module]: infos sur un module noyau\n"
 	       "meminfo: infos sur la mémoire\n"
 	       "kill [pid] [signal]: envoyer un signal à un processus\n"
+	       "wait [pid] ([pid2], ...): attendre la fin d'un des pid donnés"
 	       );
 }
 
