@@ -29,8 +29,8 @@ void list_commandes()
 	       "meminfo: infos sur la memoire\n"
 	       "kill [pid] [signal]: envoyer un signal a un processus\n"
 	       "akill [pid] [signal]: envoyer un signal a un processus mais plus tard\n"
-	       "wait [pid] ([pid2], ...): attendre la fin d'un des pid donnes"
-	       "waitall [pid] ([pid2], ...): attendre la fin de tous les pid"
+	       "wait [pid] ([pid2], ...): attendre la fin d'un des pid donnes\n"
+	       "waitall [pid] ([pid2], ...): attendre la fin de tous les pid\n"
 	       );
 }
 
