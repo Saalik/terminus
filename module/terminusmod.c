@@ -244,7 +244,8 @@ static void t_wait(void *arg)
 		pr_info("je suis dans le while(left)");
 		for (i = 0; i < wtr->wa_pids_size; i++) {
 			if (wtr->wa_pids[i] != NULL) {
-				left = 1;
+				pr_alert("There is such a thing as a PID\n");
+				left++;
 				if (!pid_alive(wtr->wa_pids[i])) {
 					put_task_struct(wtr->wa_pids[i]);
 					wtr->wa_pids[i] = NULL;
