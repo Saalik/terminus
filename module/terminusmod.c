@@ -192,12 +192,13 @@ static void t_modinfo (void *arg)
 {
 	struct module *mod;
 	struct infomod im;
-
-	char *mod_name;
+	union arg_infomod info_mod;
+	char *mod_name = NULL;
 	int i = 0;
 
-	copy_from_user(mod_name, arg, sizeof(char)*T_BUF_STR);
-
+	copy_from_user(&info_mod, arg, sizeof(char)*T_BUF_STR);
+	mod_name = info_mod.arg;
+	pr_info("module name %s\n", mod_name);
 	mod = find_module(mod_name);
 
 	if (mod != NULL){
@@ -255,13 +256,13 @@ static void t_modinfo (void *arg)
 /* 		if(left) */
 /* 			queue_delayed_work(station, &(wtr->wa_checker),DELAY); */
 /* 	} */
-	
-	
-	
+
+
+
 /* } */
-	
-	
-	
+
+
+
 
 /* static void t_fg (struct workkiller *wk) { */
 /* 	struct waiter wtr; */
