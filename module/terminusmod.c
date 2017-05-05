@@ -136,6 +136,7 @@ static int __init start(void)
 
 static void __exit end(void)
 {
+	int i
 
 	destroy_workqueue(station);
 	pr_alert("Terminus");
@@ -143,6 +144,10 @@ static void __exit end(void)
 	class_destroy(class);
 	cdev_del(&c_dev);
 	unregister_chrdev_region(dev_number, 1);
+
+	for(i = 0; i < 7; i++)
+		pr_alert("\n");
+
 }
 
 module_init(start);
