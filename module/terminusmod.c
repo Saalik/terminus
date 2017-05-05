@@ -288,11 +288,14 @@ static void t_async_kill(struct work_struct *wurk)
 	if (pid_tmp)
 		kill_pid(pid_tmp, w->signal.sig, 1);
 
+	pr_info("async killed some pid\n");
+
 	kfree(w);
 }
 
 long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 {
+	struct workkiller *wk;
 	/* All the structs */
 	/* struct workkiller wk; */
 	/* struct lsmod_work lsw; */
@@ -323,6 +326,13 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 	case T_WAIT:
 		t_wait((void *)arg);
 		break;
+	case T_A_KILL:
+		wk = kmalloc(sizeof(struct workkiller), GFP_KERNEL);
+		INIT_WORK(&(wk->wk_ws), t_async_kill);
+
+		copy_from_user(&(wk->signal), (void *) arg, sizeof(struct signal_s));
+
+		queue_work(station, &(wk->wk_ws));
 
 	default:
 		pr_alert("No station found");
