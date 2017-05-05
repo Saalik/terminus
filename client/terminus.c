@@ -26,9 +26,11 @@ ssize_t prompt_user(char *string, size_t count)
 void list_commandes()
 {
 	printf("modinfo [module]: infos sur un module noyau\n"
-	       "meminfo: infos sur la mémoire\n"
-	       "kill [pid] [signal]: envoyer un signal à un processus\n"
-	       "wait [pid] ([pid2], ...): attendre la fin d'un des pid donnés"
+	       "meminfo: infos sur la memoire\n"
+	       "kill [pid] [signal]: envoyer un signal a un processus\n"
+	       "akill [pid] [signal]: envoyer un signal a un processus mais plus tard\n"
+	       "wait [pid] ([pid2], ...): attendre la fin d'un des pid donnes"
+	       "waitall [pid] ([pid2], ...): attendre la fin de tous les pid"
 	       );
 }
 
@@ -100,7 +102,7 @@ void modinfo(int fd, char* module_name)
 	free(tmp_ptr);
 }
 
-void kill(int fd, char* pid, char* sig)
+void kill(int fd, char* pid, char* sig, int async)
 {
 	struct signal_s signal;
 	if ((pid == NULL) || (sig == NULL)) {
@@ -110,9 +112,13 @@ void kill(int fd, char* pid, char* sig)
 
 	signal.pid = atoi(pid);
 	signal.sig = atoi(sig);
-
-	if (ioctl(fd, T_KILL, &signal) != 0)
-		perror("ioctl");
+	if (!async) {
+		if (ioctl(fd, T_KILL, &signal) != 0)
+			perror("ioctl");
+	} else {
+		if (ioctl(fd, T_A_KILL, &signal) != 0)
+			perror("ioctl");
+	}
 }
 
 void t_wait(int fd, int wait_all)
@@ -188,10 +194,14 @@ int main(int argc, char ** argv)
 		}
 
 		if (lazy_cmp(user_strings[0], "kill") == 0) {
-			kill(fd, user_strings[1], user_strings[2]);
+			kill(fd, user_strings[1], user_strings[2], 0);
 			goto cleanup;
 		}
 
+		if (lazy_cmp(user_strings[0], "akill") == 0) {
+			kill(fd, user_strings[1], user_strings[2], 1);
+			goto cleanup;
+		}
 		if (lazy_cmp(user_strings[0], "wait") == 0) {
 			t_wait(fd, 0);
 			goto cleanup;
@@ -199,6 +209,7 @@ int main(int argc, char ** argv)
 
 		if (lazy_cmp(user_strings[0], "waitall") == 0) {
 			t_wait(fd, 1);
+			goto cleanup;
 		}
 
 		printf("usage: %s commande [args]\n", argv[0]);
