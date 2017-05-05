@@ -44,6 +44,7 @@ int main(int argc, char ** argv)
 	char *ptr = NULL;
 	struct my_infos infos;
 	union arg_infomod info_module;
+	struct signal_s sig;
 	info_module.arg = (char *) malloc(T_BUF_STR * sizeof(char));
 
 	ptr = info_module.arg;
@@ -117,13 +118,23 @@ int main(int argc, char ** argv)
 			else {
 				printf("ioctl modinfo setjdrhgs\n");
 			}
-
+			goto cleanup;
 		}
 
 		if (lazy_cmp(user_strings[0], "kill") == 0) {
-			if (argc < 4) {
+			if (user_strings[2] == NULL) {
 				printf("Il faut fournir un pid et un signal\n");
+				goto cleanup;
 			}
+
+			sig.pid = atoi(user_strings[1]);
+			sig.sig = atoi(user_strings[2]);
+
+			if (ioctl(fd, T_KILL, &sig) != 0) {
+				perror("ioctl");
+			}
+
+			goto cleanup;
 		}
 
 		printf("usage: %s commande [args]\n", argv[0]);
