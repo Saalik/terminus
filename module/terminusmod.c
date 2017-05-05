@@ -221,8 +221,10 @@ static void t_wait(void *arg)
 	copy_from_user(&pidlist, arg, sizeof(struct pid_list));
 	/* Récupération de la taille de l'array */
 	tab = kmalloc_array(pidlist.size, sizeof(int), GFP_KERNEL);
-	if (tab == NULL)
+	if (tab == NULL){
+		pr_info("Salut je suis t_wait");
 		return;
+	}
 	/* récup le tab en lui même */
 	copy_from_user(tab, pidlist.first, sizeof(int) * pidlist.size);
 
@@ -233,6 +235,7 @@ static void t_wait(void *arg)
 
 	while (left) {
 		left = 0;
+		pr_info("je suis dans le while(left)");
 		for (i = 0; i < wtr->wa_pids_size; i++) {
 			if (wtr->wa_pids[i] != NULL) {
 				left = 1;
@@ -270,6 +273,7 @@ static void t_wait_slow(struct work_struct *work)
 	struct waiter *wtr;
 	struct delayed_work *dw;
 
+	pr_info("t_wait_slow");
 	dw = to_delayed_work(work);
 	wtr = container_of(dw, struct waiter, wa_checker);
 
