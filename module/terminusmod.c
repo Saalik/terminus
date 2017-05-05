@@ -27,8 +27,7 @@ static struct class *class;
 
 struct workkiller {
 	struct work_struct wk_ws;
-	int wk_pid;
-	int wk_sig;
+	struct signal_s signal;
 };
 
 struct waiter {
@@ -222,7 +221,7 @@ static void t_wait(void *arg, int all)
 	struct pid_list pidlist;
 	int *tab;
 	struct pid *p;
-	
+
 
 	wtr = kmalloc(sizeof(struct waiter), GFP_KERNEL);
 	INIT_DELAYED_WORK(&(wtr->wa_checker), t_wait_slow);
@@ -252,7 +251,7 @@ static void t_wait(void *arg, int all)
 		}
 		put_pid(p);
 	}
-	
+
 	while (1) {
 		left = 0;
 		pr_info("je suis dans le while(left)");
@@ -266,7 +265,7 @@ static void t_wait(void *arg, int all)
 				}
 			}else{
 				if(all != 1)
-					break;	
+					break;
 			}
 		}
 		if (left){
@@ -283,15 +282,15 @@ static void t_wait(void *arg, int all)
 			pr_info("près wait interrupt");
 		} else
 			break;
-		
+
 	}
 
 nope_pid:
 	kfree(wtr->wa_pids);
 	kfree(wtr);
 	kfree(tab);
-	
-	
+
+
 }
 
 /*
@@ -316,8 +315,26 @@ static void t_wait_slow(struct work_struct *work)
 	wake_up_interruptible(&cond_wait_queue);
 }
 
+static void t_async_kill(struct work_struct *wurk)
+{
+	struct workkiller *w;
+	struct pid *pid_tmp;
+
+	w = container_of(wurk, struct workkiller, wk_ws);
+
+	pid_tmp = find_get_pid(w->signal.pid);
+
+	if (pid_tmp)
+		kill_pid(pid_tmp, w->signal.sig, 1);
+
+	pr_info("async killed some pid\n");
+
+	kfree(w);
+}
+
 long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 {
+	struct workkiller *wk;
 	/* All the structs */
 	/* struct workkiller wk; */
 	/* struct lsmod_work lsw; */
@@ -351,6 +368,13 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 	case T_WAIT_ALL:
 		t_wait((void *)arg,99);
 		break;
+	case T_A_KILL:
+		wk = kmalloc(sizeof(struct workkiller), GFP_KERNEL);
+		INIT_WORK(&(wk->wk_ws), t_async_kill);
+
+		copy_from_user(&(wk->signal), (void *) arg, sizeof(struct signal_s));
+
+		queue_work(station, &(wk->wk_ws));
 	default:
 		pr_alert("No station found");
 		return -1;
