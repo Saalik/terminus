@@ -4,7 +4,7 @@ INC=../inc
 all: terminus
 
 terminus: terminus.c
-	$(CC) -o $@ $< -I$(INC) -g
+	$(CC) -o $@ $< -I$(INC) -g -Wall
 
 clean:
 	rm terminus
