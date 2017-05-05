@@ -233,7 +233,7 @@ static void t_wait(void *arg)
 
 	wtr->wa_pids_size = pidlist.size;
 
-	while (left) {
+	while (1) {
 		left = 0;
 		pr_info("je suis dans le while(left)");
 		for (i = 0; i < wtr->wa_pids_size; i++) {
@@ -245,19 +245,21 @@ static void t_wait(void *arg)
 				}
 			}
 		}
-		if (left)
-			queue_delayed_work(station, &(wtr->wa_checker), DELAY);
-
-		/*
-		 * Ralentir la boucle
-		 * t_wait_slow(&condition) en Asynchrone.
-		 */
-		/*Appel de wait_slow */
-		wtr->wa_fin = 0;
-		pr_info("Avant wait interrupt");
-		wait_event_interruptible(cond_wait_queue, wtr->wa_fin == -1);
-		pr_info("près wait interrupt");
-
+		if (left){
+			if((queue_delayed_work(station, &(wtr->wa_checker), DELAY)) == 0)
+				pr_alert("Wesh, there is no such a thing as a slow wait\n");
+			/*
+			 * Ralentir la boucle
+			 * t_wait_slow(&condition) en Asynchrone.
+			 */
+			/*Appel de wait_slow */
+			wtr->wa_fin = 0;
+			pr_info("Avant wait interrupt");
+			wait_event_interruptible(cond_wait_queue, wtr->wa_fin == -1);
+			pr_info("près wait interrupt");
+		} else
+			break;
+		
 	}
 }
 
