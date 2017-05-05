@@ -221,7 +221,7 @@ static void t_wait(void *arg)
 	int i, left = 1;
 	struct pid_list pidlist;
 	int *tab;
-	pid *p;
+	struct pid *p;
 
 	wtr = kmalloc(sizeof(struct waiter), GFP_KERNEL);
 	INIT_DELAYED_WORK(&(wtr->wa_checker), t_wait_slow);
@@ -251,7 +251,7 @@ static void t_wait(void *arg)
 		}
 		put_pid(p);
 	}
-
+	
 	while (1) {
 		left = 0;
 		pr_info("je suis dans le while(left)");
@@ -281,6 +281,13 @@ static void t_wait(void *arg)
 			break;
 		
 	}
+
+nope_pid:
+	kfree(wtr->wa_pids);
+	kfree(wtr);
+	kfree(tab);
+	
+	
 }
 
 /*
