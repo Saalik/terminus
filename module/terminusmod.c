@@ -37,10 +37,7 @@ struct waiter {
 	int wa_pids_size;
 };
 
-struct lsmod_work {
-	struct work_struct lw_ws;
-	char *lw_data;
-};
+
 
 struct meminfo_work {
 	struct work_struct mw_ws;
@@ -216,8 +213,10 @@ static void t_modinfo(void *arg)
 
 static void t_async_wait (void *arg, int all)
 {
-	
 
+  
+
+}
 static void t_wait(void *arg, int all)
 {
 	struct waiter *wtr;
@@ -343,10 +342,10 @@ static void t_async_kill(struct work_struct *wurk)
 
 long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 {
-	struct workkiller *wk;
 	/* All the structs */
-	/* struct workkiller wk; */
-	/* struct lsmod_work lsw; */
+	struct workkiller *wk;
+	struct delayed_work *dw;
+	
 	/* struct meminfo_work miw; */
 
 	switch (cmd) {
@@ -361,6 +360,8 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 	case T_MODINFO:
 		t_modinfo((void *)arg);
 		break;
+	case T_A MODINFO:
+		
 		/* case T_FG:  */
 		/*      t_fg((void *) arg); */
 		/*      break; */
@@ -375,9 +376,10 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 		break;
 
 		/* Needs to be done correctly FORGOT */
-	case T_A_WAIT:
-		wk = kmalloc(sizeof(struct workkiller), GFP_KERNEL);
-		INIT_WORK(&(wk->wk_ws), t_async_kill);
+	/* case T_A_WAIT: */
+	/* 	wk = kmalloc(sizeof(struct workkiller), GFP_KERNEL); */
+	/* 	INIT_WORK(&(wk->wk_ws), t_async_kill); */
+
 		
 	case T_A_KILL:
 		wk = kmalloc(sizeof(struct workkiller), GFP_KERNEL);
