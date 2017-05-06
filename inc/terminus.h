@@ -21,6 +21,7 @@ struct pid_list {
 	int ret;
 };
 
+/*used fo the advenced sig sender*/
 struct signal_s {
 	int pid;
 	int sig;

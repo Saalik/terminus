@@ -214,6 +214,10 @@ static void t_modinfo(void *arg)
 	copy_to_user(arg, (void *)&im, sizeof(struct infomod));
 }
 
+static void t_async_wait (void *arg, int all)
+{
+	
+
 static void t_wait(void *arg, int all)
 {
 	struct waiter *wtr;
@@ -254,10 +258,10 @@ static void t_wait(void *arg, int all)
 
 	while (1) {
 		left = 0;
-		pr_info("je suis dans le while(left)");
+		/* pr_info("je suis dans le while(left)"); */
 		for (i = 0; i < wtr->wa_pids_size; i++) {
 			if (wtr->wa_pids[i] != NULL) {
-				pr_alert("There is such a thing as a PID\n");
+				/* pr_alert("There is such a thing as a PID\n"); */
 				left++;
 				if (!pid_alive(wtr->wa_pids[i])) {
 					put_task_struct(wtr->wa_pids[i]);
@@ -270,20 +274,25 @@ static void t_wait(void *arg, int all)
 		}
 		if (left){
 			if((queue_delayed_work(station, &(wtr->wa_checker), DELAY)) == 0)
-				pr_alert("Wesh, there is no such a thing as a slow wait\n");
+				/* pr_alert("Wesh, there is no such a thing as a slow wait\n"); */
 			/*
 			 * Ralentir la boucle
 			 * t_wait_slow(&condition) en Asynchrone.
 			 */
 			/*Appel de wait_slow */
 			wtr->wa_fin = 0;
-			pr_info("Avant wait interrupt");
+			/* pr_info("Avant wait interrupt"); */
 			wait_event_interruptible(cond_wait_queue, wtr->wa_fin != 0);
-			pr_info("près wait interrupt");
+			/* pr_info("près wait interrupt"); */
 		} else
 			break;
 
 	}
+
+	kfree(wtr->wa_pids);
+	kfree(wtr);
+	kfree(tab);
+
 
 nope_pid:
 	kfree(wtr->wa_pids);
@@ -358,16 +367,18 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 		/* case T_LIST: */
 		/*      t_list((void*)arg); */
 		/*      break; */
-
-		/* case T_A_KILL: */
-		/*      t_a_kill(); */
-		/*      break; */
 	case T_WAIT:
 		t_wait((void *)arg,0);
 		break;
 	case T_WAIT_ALL:
 		t_wait((void *)arg,99);
 		break;
+
+		/* Needs to be done correctly FORGOT */
+	case T_A_WAIT:
+		wk = kmalloc(sizeof(struct workkiller), GFP_KERNEL);
+		INIT_WORK(&(wk->wk_ws), t_async_kill);
+		
 	case T_A_KILL:
 		wk = kmalloc(sizeof(struct workkiller), GFP_KERNEL);
 		INIT_WORK(&(wk->wk_ws), t_async_kill);
