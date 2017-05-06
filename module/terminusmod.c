@@ -19,6 +19,7 @@ MODULE_AUTHOR("Oskar Viljasaar, Saalik Hatia");
 MODULE_DESCRIPTION("PNL Project UPMC - Terminus");
 
 /*For the purposes of the waitctl */
+int mem_info_wait;
 
 /* As named device number */
 static dev_t dev_number;
@@ -37,11 +38,9 @@ struct waiter {
 	int wa_pids_size;
 };
 
-
-
-struct meminfo_work {
-	struct work_struct mw_ws;
-	struct sysinfo mw_values;
+struct meminfo_waiter {
+	struct work_struct ws;
+	struct sysinfo values;
 };
 
 static int t_open(struct inode *i, struct file *f)
@@ -141,8 +140,7 @@ static void __exit end(void)
 	cdev_del(&c_dev);
 	unregister_chrdev_region(dev_number, 1);
 
-	for(i = 0; i < 7
-		    ; i++)
+	for (i = 0; i < 7; i++)
 		pr_alert("\n");
 
 }
@@ -159,8 +157,16 @@ static void t_meminfo(void *arg)
 	memset(&values, 0, sizeof(struct sysinfo));
 	si_meminfo(&values);
 	copy_to_user((void *)arg, &values, sizeof(struct my_infos));
+}
 
-	pr_debug("Given value given to ya!\n");
+static void t_a_meminfo(struct work_struct *wurk)
+{
+	struct meminfo_waiter *miw;
+
+	miw = container_of(wurk, struct meminfo_waiter, ws);
+	si_meminfo(&(miw->values));
+	wake_up(&cond_wait_queue);
+
 }
 
 static void t_kill(void *arg)
@@ -211,12 +217,10 @@ static void t_modinfo(void *arg)
 	copy_to_user(arg, (void *)&im, sizeof(struct infomod));
 }
 
-static void t_async_wait (void *arg, int all)
-{
+/* static void t_async_wait (void *arg, int all) */
+/* { */
 
-  
-
-}
+/* } */
 static void t_wait(void *arg, int all)
 {
 	struct waiter *wtr;
@@ -225,16 +229,13 @@ static void t_wait(void *arg, int all)
 	int *tab;
 	struct pid *p;
 
-
 	wtr = kmalloc(sizeof(struct waiter), GFP_KERNEL);
 	INIT_DELAYED_WORK(&(wtr->wa_checker), t_wait_slow);
 	copy_from_user(&pidlist, arg, sizeof(struct pid_list));
 	/* Récupération de la taille de l'array */
 	tab = kmalloc_array(pidlist.size, sizeof(int), GFP_KERNEL);
-	if (tab == NULL){
-		pr_info("Salut je suis t_wait");
+	if (tab == NULL)
 		return;
-	}
 	/* récup le tab en lui même */
 	copy_from_user(tab, pidlist.first, sizeof(int) * pidlist.size);
 
@@ -245,13 +246,11 @@ static void t_wait(void *arg, int all)
 
 	for (i = 0; i < pidlist.size; i++) {
 		p = find_get_pid(tab[i]);
-		if (!p) {
+		if (!p)
 			goto nope_pid;
-		}
 		wtr->wa_pids[i] = get_pid_task(p, PIDTYPE_PID);
-		if (!wtr->wa_pids[i]) {
+		if (!wtr->wa_pids[i])
 			goto nope_pid;
-		}
 		put_pid(p);
 	}
 
@@ -260,28 +259,28 @@ static void t_wait(void *arg, int all)
 		/* pr_info("je suis dans le while(left)"); */
 		for (i = 0; i < wtr->wa_pids_size; i++) {
 			if (wtr->wa_pids[i] != NULL) {
-				/* pr_alert("There is such a thing as a PID\n"); */
 				left++;
 				if (!pid_alive(wtr->wa_pids[i])) {
 					put_task_struct(wtr->wa_pids[i]);
 					wtr->wa_pids[i] = NULL;
 				}
-			}else{
-				if(all != 1)
+			} else {
+				if (all != 1)
 					break;
 			}
 		}
-		if (left){
-			if((queue_delayed_work(station, &(wtr->wa_checker), DELAY)) == 0)
-				/* pr_alert("Wesh, there is no such a thing as a slow wait\n"); */
-			/*
-			 * Ralentir la boucle
-			 * t_wait_slow(&condition) en Asynchrone.
-			 */
-			/*Appel de wait_slow */
-			wtr->wa_fin = 0;
+		if (left) {
+			if ((queue_delayed_work
+			     (station, &(wtr->wa_checker), DELAY)) == 0)
+				/*
+				 * Ralentir la boucle
+				 * t_wait_slow(&condition) en Asynchrone.
+				 */
+				/*Appel de wait_slow */
+				wtr->wa_fin = 0;
 			/* pr_info("Avant wait interrupt"); */
-			wait_event_interruptible(cond_wait_queue, wtr->wa_fin != 0);
+			wait_event_interruptible(cond_wait_queue,
+						 wtr->wa_fin != 0);
 			/* pr_info("près wait interrupt"); */
 		} else
 			break;
@@ -292,12 +291,10 @@ static void t_wait(void *arg, int all)
 	kfree(wtr);
 	kfree(tab);
 
-
-nope_pid:
+ nope_pid:
 	kfree(wtr->wa_pids);
 	kfree(wtr);
 	kfree(tab);
-
 
 }
 
@@ -344,9 +341,7 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 {
 	/* All the structs */
 	struct workkiller *wk;
-	struct delayed_work *dw;
-	
-	/* struct meminfo_work miw; */
+	struct meminfo_waiter *miw;
 
 	switch (cmd) {
 
@@ -354,40 +349,59 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 		pr_info("meminfo");
 		t_meminfo((void *)arg);
 		break;
+
+	case T_A_MEMINFO:
+		pr_info("a_meminfo");
+		mem_info_wait = 0;
+		miw = kzalloc(sizeof(struct meminfo_waiter), GFP_KERNEL);
+		INIT_WORK(&(miw->ws), t_a_meminfo);
+		schedule_work(&(miw->ws));
+		wait_event(cond_wait_queue, mem_info_wait);
+		copy_to_user((void *)arg, &(miw->values),
+			     sizeof(struct my_infos));
+		queue_work(station, &(miw->ws));
+		kfree(miw);
+		break;
+
 	case T_KILL:
 		t_kill((void *)arg);
 		break;
+
+	case T_A_KILL:
+		wk = kmalloc(sizeof(struct workkiller), GFP_KERNEL);
+		INIT_WORK(&(wk->wk_ws), t_async_kill);
+
+		copy_from_user(&(wk->signal), (void *)arg,
+			       sizeof(struct signal_s));
+
+		queue_work(station, &(wk->wk_ws));
+		break;
+
 	case T_MODINFO:
 		t_modinfo((void *)arg);
 		break;
-	case T_A MODINFO:
-		
+	case T_WAIT:
+		t_wait((void *)arg, 0);
+		break;
+	case T_WAIT_ALL:
+		t_wait((void *)arg, 99);
+		break;
+
+		/* Left async : meminfo */
+		/* case T_A MODINFO: */
+
 		/* case T_FG:  */
 		/*      t_fg((void *) arg); */
 		/*      break; */
 		/* case T_LIST: */
 		/*      t_list((void*)arg); */
 		/*      break; */
-	case T_WAIT:
-		t_wait((void *)arg,0);
-		break;
-	case T_WAIT_ALL:
-		t_wait((void *)arg,99);
-		break;
 
 		/* Needs to be done correctly FORGOT */
-	/* case T_A_WAIT: */
-	/* 	wk = kmalloc(sizeof(struct workkiller), GFP_KERNEL); */
-	/* 	INIT_WORK(&(wk->wk_ws), t_async_kill); */
+		/* case T_A_WAIT: */
+		/*      wk = kmalloc(sizeof(struct workkiller), GFP_KERNEL); */
+		/*      INIT_WORK(&(wk->wk_ws), t_async_kill); */
 
-		
-	case T_A_KILL:
-		wk = kmalloc(sizeof(struct workkiller), GFP_KERNEL);
-		INIT_WORK(&(wk->wk_ws), t_async_kill);
-
-		copy_from_user(&(wk->signal), (void *) arg, sizeof(struct signal_s));
-
-		queue_work(station, &(wk->wk_ws));
 	default:
 		pr_alert("No station found");
 		return -1;
