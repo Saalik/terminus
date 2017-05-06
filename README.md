@@ -1,6 +1,6 @@
 # terminus
 
-##What's left:
+## What's left:
 
 Implement all the async functions
 
@@ -10,6 +10,6 @@ The kill signal has been implemented to use any signal possible create a simple 
 
 Check the IOCTL if they work properly
 
-##Might be good to do
+## Might be good to do
 
 Replace all the kernel allocation with slabs
