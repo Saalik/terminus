@@ -22,9 +22,13 @@ MODULE_DESCRIPTION("PNL Project UPMC - Terminus");
 int mem_info_wait;
 
 /* As named device number */
+
 static dev_t dev_number;
 static struct cdev c_dev;
 static struct class *class;
+
+//struct listfg {
+	
 
 struct workkiller {
 	struct work_struct wk_ws;
@@ -37,6 +41,7 @@ struct waiter {
 	int wa_fin;
 	struct task_struct **wa_pids;
 	int wa_pids_size;
+	int async;
 };
 
 struct meminfo_waiter {
@@ -155,7 +160,18 @@ module_exit(end);
 long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 {
 	/* Reborn of the project */
+	/* Used for kill */
 	struct workkiller *wk;
+	/* Used for wait */
+	struct waiter *wtr;
+	/* Used for meminfo */
+	struct meminfo_waiter mew;
+	/* Used for modinfo */
+	struct modinfo_waiter mow;
+
+	
+
+
 	
 	switch(cmd) {
 		
