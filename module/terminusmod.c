@@ -53,6 +53,7 @@ struct meminfo_waiter {
 struct modinfo_waiter {
 	struct work_struct ws;
 	struct infomod im;
+	char *arg;
 	int async;
 };
 
@@ -164,57 +165,6 @@ module_init(start);
 module_exit(end);
 
 
-long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
-{
-	/* Reborn of the project */
-	/* Used for kill */
-	struct workkiller *wk;
-	/* Used for wait */
-	struct waiter *wtr;
-	/* Used for meminfo */
-	struct meminfo_waiter mew;
-	/* Used for modinfo */
-	struct modinfo_waiter mow;
-	
-	switch(cmd) {
-
-	case T_LIST:
-		break;
-	case T_FG:
-		break;
-	case T_KILL:
-		break;
-	case T_WAIT:
-		break;
-	case T_MEMINFO:
-		sleep = 0;
-		mew = kzalloc(sizeof(struct meminfo_waiter), GFP_KERNEL);
-		mew->async= 0;
-		INIT_WORK(&(miw->ws), t_meminfo);
-		schedule_work(&(miw->ws));
-		wait_event(cond_wait_queue, sleep!=0);
-		copy_to_user((void *)arg, &(mew->values),
-		 	     sizeof(struct my_infos));
-		kfree(mew);
-		break;
-	case T_MODINFO:
-		sleep = 0;
-		mow = kzalloc(sizeof(struct modinfo_waiter), GFP_KERNEL);
-		mow->async=0;
-		INIT_WORK(&(mow->ws), t_modinfo);
-		schedule_work(&(mow->ws), t_modinfo);
-		wait_event(cond_wait_queue, sleep!=0);
-		copy_to_user((void*)arg, &mew->im, sizeof(struct infomod));
-		kfree(mow);
-		break;
-	default:
-		pr_alert("Unkown command");
-		return-1;
-	}
-	return 0;
-}
-
-
 static void t_list(struct work_struct *work)
 {
 	
@@ -239,7 +189,7 @@ static void t_meminfo(struct work_struct *work)
 {
 	struct meminfo_waiter *mew;
 	
-	miw = container_of(work, struct meminfo_waiter, ws);
+	mew = container_of(work, struct meminfo_waiter, ws);
 	si_meminfo(&(mew->values));
 	sleep = 1;
 	wake_up(&cond_wait_queue);
@@ -248,31 +198,81 @@ static void t_meminfo(struct work_struct *work)
 static void t_modinfo(struct work_struct *work)
 {
 	struct module *mod;
-	union arg_infomod info_mod;
-	struct modinfo_waiter mow;
+	struct modinfo_waiter *mow;
 	char *mod_name = NULL;
 	int i = 0;
 	mow = container_of(work, struct modinfo_waiter, ws);
-	copy_from_user(&info_mod, arg, sizeof(char) * T_BUF_STR);
-	mod_name = info_mod.arg;
+	mod_name = mow->arg;
 	pr_info("module name %s\n", mod_name);
 	mod = find_module(mod_name);
 	if (mod != NULL) {
-		scnprintf(modinfo_waiter.im.name, T_BUF_STR, "%s", mod->name);
-		scnprintf(modinfo_waiter.im.version, T_BUF_STR,
+		scnprintf(mow->im.name, T_BUF_STR, "%s", mod->name);
+		scnprintf(mow->im.version, T_BUF_STR,
 			  "%s", mod->version);
-		modinfo_waiter.im.module_core = mod->module_core;
-		modinfo_waiter.im.num_kp = mod->num_kp;
+		mow->im.module_core = mod->module_core;
+		mow->im.num_kp = mod->num_kp;
 		while (i < mod->num_kp) {
 			/*kernel paramkp */
-			scnprintf(modinfo_waiter.im.args, T_BUF_STR,
+			scnprintf(mow->im.args, T_BUF_STR,
 				  "%s ", mod->kp[i].name);
 			i++;
 		}
 	} else {
-		im.module_core = NULL;
+		mow->im.module_core = NULL;
 	}
 	sleep=1;
 	wake_up(&cond_wait_queue);
 }
 
+
+long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
+{
+	/* Reborn of the project */
+	/* Used for kill */
+	struct workkiller *wk;
+	/* Used for wait */
+	struct waiter *wtr;
+	/* Used for meminfo */
+	struct meminfo_waiter *mew;
+	/* Used for modinfo */
+	struct modinfo_waiter *mow;
+	
+	switch(cmd) {
+
+	case T_LIST:
+		break;
+	case T_FG:
+		break;
+	case T_KILL:
+		break;
+	case T_WAIT:
+		
+		break;
+	case T_MEMINFO:
+		sleep = 0;
+		mew = kzalloc(sizeof(struct meminfo_waiter), GFP_KERNEL);
+		mew->async= 0;
+		INIT_WORK(&(mew->ws), t_meminfo);
+		schedule_work(&(mew->ws));
+		wait_event(cond_wait_queue, sleep!=0);
+		copy_to_user((void *)arg, (void*)&(mew->values),
+		 	     sizeof(struct my_infos));
+		kfree(mew);
+		break;
+	case T_MODINFO:
+		sleep = 0;
+		mow = kzalloc(sizeof(struct modinfo_waiter), GFP_KERNEL);
+		copy_from_user(&mow->arg, arg, sizeof(char) * T_BUF_STR);
+		mow->async=0;
+		INIT_WORK(&(mow->ws), t_modinfo);
+		schedule_work(&(mow->ws));
+		wait_event(cond_wait_queue, sleep!=0);
+		copy_to_user((void*)arg, (void*)&mow->im, sizeof(struct infomod));
+		kfree(mow);
+		break;
+	default:
+		pr_alert("Unkown command");
+		return-1;
+	}
+	return 0;
+}
