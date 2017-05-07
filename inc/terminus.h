@@ -12,9 +12,10 @@
 #define T_WAIT _IOR(TERMINUS_MAGIC, 4, int)
 #define T_MODINFO _IOR(TERMINUS_MAGIC, 5, int)
 #define T_MEMINFO _IOR(TERMINUS_MAGIC, 6, int)
-#define T_A_KILL _IOR(TERMINUS_MAGIC, 7, int)
-#define T_WAIT_ALL _IOR(TERMINUS_MAGIC, 8, int)
-#define T_A_MEMINFO _IOR(TERMINUS_MAGIC, 9, int)
+/* #define T_A_KILL _IOR(TERMINUS_MAGIC, 7, int) */
+/* #define T_WAIT_ALL _IOR(TERMINUS_MAGIC, 8, int) */
+/* #define T_A_MEMINFO _IOR(TERMINUS_MAGIC, 9, int) */
+
 
 struct pid_list {
 	int size;
@@ -22,7 +23,7 @@ struct pid_list {
 	int ret;
 };
 
-/*used fo the advenced sig sender*/
+/*used sig sender*/
 struct signal_s {
 	int pid;
 	int sig;
@@ -46,17 +47,18 @@ struct my_infos {
 };
 
 struct infomod {
-  char  name[T_BUF_STR];
-  char  version[T_BUF_STR];
-  void  *module_core;
-  unsigned int num_kp;
-  char args[T_BUF_STR];
+	char  name[T_BUF_STR];
+	char  version[T_BUF_STR];
+	void  *module_core;
+	unsigned int num_kp;
+	char args[T_BUF_STR];
 };
 
   
 union arg_infomod {
-  char *arg;
-  struct infomod data;
+	struct infomod data;
+	char *arg;
 };
+
 
 #endif /* TERMINUS */

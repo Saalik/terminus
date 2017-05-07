@@ -140,13 +140,52 @@ static void __exit end(void)
 	cdev_del(&c_dev);
 	unregister_chrdev_region(dev_number, 1);
 
-	for (i = 0; i < 7; i++)
-		pr_alert("\n");
-
 }
 
 module_init(start);
 module_exit(end);
+
+
+
+long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
+{
+	/* Reborn of the project */
+	struct workkiller wk;
+	
+	
+	switch(cmd) {
+		
+	case T_LIST:		
+		break;
+	case T_FG:
+		break;
+	case T_KILL:
+		wk = kmalloc(sizeof(struct workkiller), GFP_KERNEL);
+		INIT_WORK(&(wk->wk_ws), t_async_kill);
+		copy_from_user(&(wk->signal), (void *)arg,
+			       sizeof(struct signal_s));
+		queue_work(station, &(wk->wk_ws));
+		break;
+		break;
+	case T_WAIT:
+		break;
+	case T_MEMINFO:
+		break;
+	case T_MODINFO:
+		break;
+	default:
+		pr_alert("Unkown command");
+		return-1;
+	}
+	return 0;
+}
+		
+
+
+
+
+
+
 
 /* static void t_list(void *arg) {} */
 
@@ -272,11 +311,6 @@ static void t_wait(void *arg, int all)
 		if (left) {
 			if ((queue_delayed_work
 			     (station, &(wtr->wa_checker), DELAY)) == 0)
-				/*
-				 * Ralentir la boucle
-				 * t_wait_slow(&condition) en Asynchrone.
-				 */
-				/*Appel de wait_slow */
 				wtr->wa_fin = 0;
 			/* pr_info("Avant wait interrupt"); */
 			wait_event_interruptible(cond_wait_queue,
@@ -370,19 +404,21 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 	case T_A_KILL:
 		wk = kmalloc(sizeof(struct workkiller), GFP_KERNEL);
 		INIT_WORK(&(wk->wk_ws), t_async_kill);
-
 		copy_from_user(&(wk->signal), (void *)arg,
 			       sizeof(struct signal_s));
-
 		queue_work(station, &(wk->wk_ws));
 		break;
 
 	case T_MODINFO:
 		t_modinfo((void *)arg);
 		break;
+
+	/* case T_A_MODINFO: */
+	/* 	break; */
 	case T_WAIT:
 		t_wait((void *)arg, 0);
 		break;
+		
 	case T_WAIT_ALL:
 		t_wait((void *)arg, 99);
 		break;
