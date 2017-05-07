@@ -51,6 +51,7 @@ struct meminfo_waiter {
 };
 
 struct modinfo_waiter {
+	struct work_struct ws;
 	struct infomod im;
 	int async;
 };
@@ -187,6 +188,7 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 	case T_MEMINFO:
 		sleep = 0;
 		mew = kzalloc(sizeof(struct meminfo_waiter), GFP_KERNEL);
+		mew->async= 0;
 		INIT_WORK(&(miw->ws), t_meminfo);
 		schedule_work(&(miw->ws));
 		wait_event(cond_wait_queue, sleep!=0);
@@ -194,9 +196,14 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 		 	     sizeof(struct my_infos));
 		kfree(mew);
 		break;
-	case T_A_MEMINFO:
-		sleep=0;
 	case T_MODINFO:
+		sleep = 0;
+		mow = kzalloc(sizeof(struct modinfo_waiter), GFP_KERNEL);
+		mow->async=0;
+		INIT_WORK(&(mow->wk_ws), t_modinfo);
+		copy_from_user(&(wk->signal), (void *)arg,
+			       sizeof(struct signal_s));
+		kfree(wk)
 		break;
 	default:
 		pr_alert("Unkown command");
