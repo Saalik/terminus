@@ -29,6 +29,7 @@ static struct class *class;
 struct workkiller {
 	struct work_struct wk_ws;
 	struct signal_s signal;
+	int async;
 };
 
 struct waiter {
@@ -41,7 +42,14 @@ struct waiter {
 struct meminfo_waiter {
 	struct work_struct ws;
 	struct sysinfo values;
+	int async;
 };
+
+struct modinfo_waiter {
+	struct infomod im;
+	int async;
+}
+
 
 static int t_open(struct inode *i, struct file *f)
 {
@@ -118,28 +126,25 @@ static int __init start(void)
 
 	pr_alert("Start to Terminus\n");
 	return 0;
- device_fail:
+device_fail:
 	/*device_destroy(class, dev_number); */
 	class_destroy(class);
- fail_class:
+fail_class:
 	cdev_del(&c_dev);
 	unregister_chrdev_region(dev_number, 1);
-
- fail:
+fail:
 	return result;
 }
 
 static void __exit end(void)
 {
 	int i;
-
 	destroy_workqueue(station);
 	pr_alert("Terminus");
 	device_destroy(class, dev_number);
 	class_destroy(class);
 	cdev_del(&c_dev);
 	unregister_chrdev_region(dev_number, 1);
-
 }
 
 module_init(start);
@@ -150,23 +155,21 @@ module_exit(end);
 long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 {
 	/* Reborn of the project */
-	struct workkiller wk;
-	
+	struct workkiller *wk;
 	
 	switch(cmd) {
 		
-	case T_LIST:		
+	case T_LIST:
 		break;
 	case T_FG:
 		break;
 	case T_KILL:
 		wk = kmalloc(sizeof(struct workkiller), GFP_KERNEL);
+		wk->async = 0;
 		INIT_WORK(&(wk->wk_ws), t_async_kill);
 		copy_from_user(&(wk->signal), (void *)arg,
 			       sizeof(struct signal_s));
 		queue_work(station, &(wk->wk_ws));
-		break;
-		break;
 	case T_WAIT:
 		break;
 	case T_MEMINFO:
@@ -177,271 +180,5 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 		pr_alert("Unkown command");
 		return-1;
 	}
-	return 0;
-}
-		
-
-
-
-
-
-
-
-/* static void t_list(void *arg) {} */
-
-static void t_meminfo(void *arg)
-{
-	struct sysinfo values;
-
-	memset(&values, 0, sizeof(struct sysinfo));
-	si_meminfo(&values);
-	copy_to_user((void *)arg, &values, sizeof(struct my_infos));
-}
-
-static void t_a_meminfo(struct work_struct *wurk)
-{
-	struct meminfo_waiter *miw;
-
-	miw = container_of(wurk, struct meminfo_waiter, ws);
-	si_meminfo(&(miw->values));
-	wake_up(&cond_wait_queue);
-
-}
-
-static void t_kill(void *arg)
-{
-	struct signal_s s;
-	struct pid *pid_target;
-
-	copy_from_user(&s, arg, sizeof(struct signal_s));
-	pid_target = find_get_pid(s.pid);
-
-	/* Si on a bien trouvé un processus correspondant. */
-	if (pid_target)
-		kill_pid(pid_target, s.sig, 1);
-}
-
-/*
-En mode U le pointeur change
- */
-
-static void t_modinfo(void *arg)
-{
-	struct module *mod;
-	struct infomod im;
-	union arg_infomod info_mod;
-	char *mod_name = NULL;
-	int i = 0;
-
-	copy_from_user(&info_mod, arg, sizeof(char) * T_BUF_STR);
-	mod_name = info_mod.arg;
-	pr_info("module name %s\n", mod_name);
-	mod = find_module(mod_name);
-
-	if (mod != NULL) {
-		scnprintf(im.name, T_BUF_STR, "%s", mod->name);
-		scnprintf(im.version, T_BUF_STR, "%s", mod->version);
-		im.module_core = mod->module_core;
-		im.num_kp = mod->num_kp;
-		while (i < mod->num_kp) {
-			/*kernel paramkp */
-			scnprintf(im.args, T_BUF_STR, "%s ", mod->kp[i].name);
-			i++;
-		}
-
-	} else {
-		im.module_core = NULL;
-	}
-
-	copy_to_user(arg, (void *)&im, sizeof(struct infomod));
-}
-
-/* static void t_async_wait (void *arg, int all) */
-/* { */
-
-/* } */
-static void t_wait(void *arg, int all)
-{
-	struct waiter *wtr;
-	int i, left = 1;
-	struct pid_list pidlist;
-	int *tab;
-	struct pid *p;
-
-	wtr = kmalloc(sizeof(struct waiter), GFP_KERNEL);
-	INIT_DELAYED_WORK(&(wtr->wa_checker), t_wait_slow);
-	copy_from_user(&pidlist, arg, sizeof(struct pid_list));
-	/* Récupération de la taille de l'array */
-	tab = kmalloc_array(pidlist.size, sizeof(int), GFP_KERNEL);
-	if (tab == NULL)
-		return;
-	/* récup le tab en lui même */
-	copy_from_user(tab, pidlist.first, sizeof(int) * pidlist.size);
-
-	wtr->wa_pids =
-	    kzalloc(sizeof(struct task_struct *) * pidlist.size, GFP_KERNEL);
-
-	wtr->wa_pids_size = pidlist.size;
-
-	for (i = 0; i < pidlist.size; i++) {
-		p = find_get_pid(tab[i]);
-		if (!p)
-			goto nope_pid;
-		wtr->wa_pids[i] = get_pid_task(p, PIDTYPE_PID);
-		if (!wtr->wa_pids[i])
-			goto nope_pid;
-		put_pid(p);
-	}
-
-	while (1) {
-		left = 0;
-		/* pr_info("je suis dans le while(left)"); */
-		for (i = 0; i < wtr->wa_pids_size; i++) {
-			if (wtr->wa_pids[i] != NULL) {
-				left++;
-				if (!pid_alive(wtr->wa_pids[i])) {
-					put_task_struct(wtr->wa_pids[i]);
-					wtr->wa_pids[i] = NULL;
-				}
-			} else {
-				if (all != 1)
-					break;
-			}
-		}
-		if (left) {
-			if ((queue_delayed_work
-			     (station, &(wtr->wa_checker), DELAY)) == 0)
-				wtr->wa_fin = 0;
-			/* pr_info("Avant wait interrupt"); */
-			wait_event_interruptible(cond_wait_queue,
-						 wtr->wa_fin != 0);
-			/* pr_info("près wait interrupt"); */
-		} else
-			break;
-
-	}
-
-	kfree(wtr->wa_pids);
-	kfree(wtr);
-	kfree(tab);
-
- nope_pid:
-	kfree(wtr->wa_pids);
-	kfree(wtr);
-	kfree(tab);
-
-}
-
-/*
- * Appelé au cours d'un wait et aprsès un nombre
- * donné de ticks.
- * Change la condition et wake le process
- * Wait_slow est appelée car elle est l'un des attributs d'une work_struct
- * qui contient un pointeur vers un delayed work.
- * Le delayed work est embedded dans une struct custom, qui contient
- * donc la condition.
- */
-static void t_wait_slow(struct work_struct *work)
-{
-	struct waiter *wtr;
-	struct delayed_work *dw;
-
-	pr_info("t_wait_slow");
-	dw = to_delayed_work(work);
-	wtr = container_of(dw, struct waiter, wa_checker);
-
-	wtr->wa_fin = 1;
-	wake_up_interruptible(&cond_wait_queue);
-}
-
-static void t_async_kill(struct work_struct *wurk)
-{
-	struct workkiller *w;
-	struct pid *pid_tmp;
-
-	w = container_of(wurk, struct workkiller, wk_ws);
-
-	pid_tmp = find_get_pid(w->signal.pid);
-
-	if (pid_tmp)
-		kill_pid(pid_tmp, w->signal.sig, 1);
-
-	pr_info("async killed some pid\n");
-
-	kfree(w);
-}
-
-long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
-{
-	/* All the structs */
-	struct workkiller *wk;
-	struct meminfo_waiter *miw;
-
-	switch (cmd) {
-
-	case T_MEMINFO:
-		pr_info("meminfo");
-		t_meminfo((void *)arg);
-		break;
-
-	case T_A_MEMINFO:
-		pr_info("a_meminfo");
-		mem_info_wait = 0;
-		miw = kzalloc(sizeof(struct meminfo_waiter), GFP_KERNEL);
-		INIT_WORK(&(miw->ws), t_a_meminfo);
-		schedule_work(&(miw->ws));
-		wait_event(cond_wait_queue, mem_info_wait);
-		copy_to_user((void *)arg, &(miw->values),
-			     sizeof(struct my_infos));
-		queue_work(station, &(miw->ws));
-		kfree(miw);
-		break;
-
-	case T_KILL:
-		t_kill((void *)arg);
-		break;
-
-	case T_A_KILL:
-		wk = kmalloc(sizeof(struct workkiller), GFP_KERNEL);
-		INIT_WORK(&(wk->wk_ws), t_async_kill);
-		copy_from_user(&(wk->signal), (void *)arg,
-			       sizeof(struct signal_s));
-		queue_work(station, &(wk->wk_ws));
-		break;
-
-	case T_MODINFO:
-		t_modinfo((void *)arg);
-		break;
-
-	/* case T_A_MODINFO: */
-	/* 	break; */
-	case T_WAIT:
-		t_wait((void *)arg, 0);
-		break;
-		
-	case T_WAIT_ALL:
-		t_wait((void *)arg, 99);
-		break;
-
-		/* Left async : meminfo */
-		/* case T_A MODINFO: */
-
-		/* case T_FG:  */
-		/*      t_fg((void *) arg); */
-		/*      break; */
-		/* case T_LIST: */
-		/*      t_list((void*)arg); */
-		/*      break; */
-
-		/* Needs to be done correctly FORGOT */
-		/* case T_A_WAIT: */
-		/*      wk = kmalloc(sizeof(struct workkiller), GFP_KERNEL); */
-		/*      INIT_WORK(&(wk->wk_ws), t_async_kill); */
-
-	default:
-		pr_alert("No station found");
-		return -1;
-	}
-
 	return 0;
 }
