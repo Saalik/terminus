@@ -27,8 +27,10 @@ static dev_t dev_number;
 static struct cdev c_dev;
 static struct class *class;
 
-//struct listfg {
-	
+/* struct listfg { */
+/*   union { */
+
+
 
 struct workkiller {
 	struct work_struct wk_ws;
@@ -54,7 +56,6 @@ struct modinfo_waiter {
 	struct infomod im;
 	int async;
 }
-
 
 static int t_open(struct inode *i, struct file *f)
 {
@@ -168,13 +169,8 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 	struct meminfo_waiter mew;
 	/* Used for modinfo */
 	struct modinfo_waiter mow;
-
-	
-
-
 	
 	switch(cmd) {
-		
 	case T_LIST:
 		break;
 	case T_FG:
