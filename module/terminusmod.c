@@ -248,33 +248,30 @@ static void t_meminfo(struct work_struct *work)
 static void t_modinfo(struct work_struct *work)
 {
 	struct module *mod;
-	struct infomod im;
 	union arg_infomod info_mod;
 	struct modinfo_waiter mow;
 	char *mod_name = NULL;
 	int i = 0;
-
+	mow = container_of(work, struct modinfo_waiter, ws);
 	copy_from_user(&info_mod, arg, sizeof(char) * T_BUF_STR);
 	mod_name = info_mod.arg;
 	pr_info("module name %s\n", mod_name);
 	mod = find_module(mod_name);
-
 	if (mod != NULL) {
-		scnprintf(im.name, T_BUF_STR, "%s", mod->name);
-		scnprintf(im.version, T_BUF_STR, "%s", mod->version);
-		im.module_core = mod->module_core;
-		im.num_kp = mod->num_kp;
+		scnprintf(modinfo_waiter.im.name, T_BUF_STR, "%s", mod->name);
+		scnprintf(modinfo_waiter.im.version, T_BUF_STR,
+			  "%s", mod->version);
+		modinfo_waiter.im.module_core = mod->module_core;
+		modinfo_waiter.im.num_kp = mod->num_kp;
 		while (i < mod->num_kp) {
 			/*kernel paramkp */
-			scnprintf(im.args, T_BUF_STR, "%s ", mod->kp[i].name);
+			scnprintf(modinfo_waiter.im.args, T_BUF_STR,
+				  "%s ", mod->kp[i].name);
 			i++;
 		}
-
 	} else {
 		im.module_core = NULL;
 	}
-	mow->im=im;
-	
 	sleep=1;
 	wake_up(&cond_wait_queue);
 }
