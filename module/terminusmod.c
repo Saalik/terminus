@@ -30,8 +30,6 @@ static struct class *class;
 /* struct listfg { */
 /*   union { */
 
-
-
 struct workkiller {
 	struct work_struct wk_ws;
 	struct signal_s signal;
@@ -55,7 +53,14 @@ struct meminfo_waiter {
 struct modinfo_waiter {
 	struct infomod im;
 	int async;
-}
+};
+
+static struct listing *listcmd;
+static int nbcmd;
+static int flags[10];
+static char* ret_async;
+
+
 
 static int t_open(struct inode *i, struct file *f)
 {
@@ -84,6 +89,7 @@ static const struct file_operations fops = {
 */
 
 static struct workqueue_struct *station;
+static int sleep = 0;
 
 DECLARE_WAIT_QUEUE_HEAD(cond_wait_queue);
 static void t_wait_slow(struct work_struct *work);
@@ -157,7 +163,6 @@ module_init(start);
 module_exit(end);
 
 
-
 long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 {
 	/* Reborn of the project */
@@ -176,15 +181,18 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 	case T_FG:
 		break;
 	case T_KILL:
-		wk = kmalloc(sizeof(struct workkiller), GFP_KERNEL);
-		wk->async = 0;
-		INIT_WORK(&(wk->wk_ws), t_async_kill);
-		copy_from_user(&(wk->signal), (void *)arg,
-			       sizeof(struct signal_s));
-		queue_work(station, &(wk->wk_ws));
+		break;
 	case T_WAIT:
 		break;
 	case T_MEMINFO:
+		sleep = 0;
+		mew = kzalloc(sizeof(struct meminfo_waiter), GFP_KERNEL);
+		INIT_WORK(&(miw->ws), t_meminfo);
+		schedule_work(&(miw->ws));
+		wait_event(cond_wait_queue, sleep!=0);
+		copy_to_user((void *)arg, &(mew->values),
+		 	     sizeof(struct my_infos));
+		kfree(mew);
 		break;
 	case T_MODINFO:
 		break;
@@ -194,3 +202,39 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 	}
 	return 0;
 }
+
+
+static void t_list(struct work_struct *work)
+{
+	
+}
+
+static void t_fg(struct work_struct *work)
+{
+
+}
+
+static void t_kill(struct work_struct *work)
+{
+	
+}
+
+static void t_wait(struct work_struct *work)
+{
+
+}
+
+static void t_meminfo(struct work_struct *work)
+{
+	struct meminfo_waiter *mew;
+	
+	miw = container_of(work, struct meminfo_waiter, ws);
+	si_meminfo(&(mew->values));
+	wake_up(&cond_wait_queue);
+}
+
+static void t_modinfo(struct work_struct *work)
+{
+
+}
+
