@@ -194,6 +194,8 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 		 	     sizeof(struct my_infos));
 		kfree(mew);
 		break;
+	case T_A_MEMINFO:
+		sleep=0;
 	case T_MODINFO:
 		break;
 	default:
@@ -230,6 +232,7 @@ static void t_meminfo(struct work_struct *work)
 	
 	miw = container_of(work, struct meminfo_waiter, ws);
 	si_meminfo(&(mew->values));
+	sleep = 1;
 	wake_up(&cond_wait_queue);
 }
 
