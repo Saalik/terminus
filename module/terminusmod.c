@@ -177,7 +177,21 @@ static void t_fg(struct work_struct *work)
 
 static void t_kill(struct work_struct *work)
 {
+
+	struct signal_s s;
+	struct pid *pid_target;
 	
+	copy_from_user(&s, arg, sizeof(struct signal_s));
+	pid_target = find_get_pid(s.pid);
+	
+	/* Si on a bien trouvé un processus correspondant. */
+	if (pid_target){
+		s.state = 1;
+		kill_pid(pid_target, s.sig, 1);
+	}else{
+		s.state = 0;
+	}
+
 }
 
 static void t_wait(struct work_struct *work)
@@ -244,6 +258,7 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 	case T_FG:
 		break;
 	case T_KILL:
+		
 		break;
 	case T_WAIT:
 		
@@ -267,7 +282,8 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 		INIT_WORK(&(mow->ws), t_modinfo);
 		schedule_work(&(mow->ws));
 		wait_event(cond_wait_queue, sleep!=0);
-		copy_to_user((void*)arg, (void*)&mow->im, sizeof(struct infomod));
+		copy_to_user((void*)arg, (void*)&mow->im,
+			     sizeof(struct infomod));
 		kfree(mow);
 		break;
 	default:
