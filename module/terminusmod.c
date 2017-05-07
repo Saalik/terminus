@@ -200,10 +200,9 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 		sleep = 0;
 		mow = kzalloc(sizeof(struct modinfo_waiter), GFP_KERNEL);
 		mow->async=0;
-		INIT_WORK(&(mow->wk_ws), t_modinfo);
-		copy_from_user(&(wk->signal), (void *)arg,
-			       sizeof(struct signal_s));
-		kfree(wk)
+		INIT_WORK(&(mow->ws), t_modinfo);
+		copy_to_user((void*)arg, &mew->im, sizeof(struct infomod));
+		kfree(mow);
 		break;
 	default:
 		pr_alert("Unkown command");
