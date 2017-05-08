@@ -165,7 +165,7 @@ void t_wait(int fd, int wait_all)
 	for (i=1; user_strings[i] != NULL; i++)
 		arg.pid_list_a.size++;
 
-	if (list.size == 0) {
+	if (arg.pid_list.a_size == 0) {
 		printf("Il faut au moins un pid.\n");
 		return;
 	}
