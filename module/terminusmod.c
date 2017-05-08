@@ -52,13 +52,6 @@ struct handler_struct {
 	int sleep;
 };
 
-struct modinfo_waiter {
-	struct work_struct ws;
-	struct infomod im;
-	char *arg;
-	int async;
-	int sleep;
-};
 
 static struct listing *listcmd;
 static int nbcmd;
@@ -178,20 +171,20 @@ static void t_fg(struct work_struct *work)
 
 static void t_kill(struct work_struct *work)
 {
-	struct workkiller *wk;
+	struct handler_struct *handler;
 	struct pid *pid_target;
 
-	wk= container_of(work, struct workkiller, wk_ws);
-	pid_target = find_get_pid(wk->signal.pid);
+	handler = container_of(work, struct handler_struct, worker);
+	pid_target = find_get_pid(handler->arg.kill_a.pid);
 
 	/* Si on a bien trouvé un processus correspondant. */
 	if (pid_target){
-		wk->signal.state = 1;
-		kill_pid(pid_target, wk->signal.sig, 1);
+		handler->arg.kill_a.state = 1;
+		kill_pid(pid_target, handler->arg.kill_a.sig, 1);
 	}else{
-		wk->signal.state = 0;
+		handler->arg.kill_a.state = 0;
 	}
-	wk->sleep = 1;
+	handler->sleep = 1;
 	wake_up(&cond_wait_queue);
 }
 
@@ -340,20 +333,18 @@ static void t_modinfo(struct work_struct *work)
 void do_it(struct module_argument *arg)
 {
 	struct handler_struct *handler;
-	pr_info("do it begins\n");
 	handler = kzalloc(sizeof(struct handler_struct), GFP_KERNEL);
 	handler->sleep = 0;
 	copy_from_user(&(handler->arg), arg, sizeof(struct module_argument));
-	pr_info("do it: just copied argument\n");
 	switch (arg->arg_type) {
 	case meminfo_t:
-		pr_info("meminfo\n");
 		INIT_WORK(&(handler->worker), t_meminfo);
 		break;
 	case modinfo_t:
-		pr_info("adding work modinfo\n");
 		INIT_WORK(&(handler->worker), t_modinfo);
-		pr_info("added work modinfo\n");
+		break;
+	case kill_t:
+		INIT_WORK(&(handler->worker), t_modinfo);
 		break;
 	default:
 		pr_info("default case\n");
@@ -376,8 +367,6 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 	/* Used for wait */
 	/* struct waiter *wtr; */
 	/* Used for modinfo */
-	struct modinfo_waiter *mow;
-	struct handler_struct *handler;
 
 	switch(cmd) {
 

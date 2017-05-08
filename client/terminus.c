@@ -110,21 +110,21 @@ void modinfo(int fd, char* module_name)
 
 void kill(int fd, char* pid, char* sig, int async)
 {
-	struct signal_s signal;
+	struct module_argument arg;
+	arg.arg_type = kill_t;
+	arg.async = async;
+
 	if ((pid == NULL) || (sig == NULL)) {
 		printf("Il faut fournir un pid et un signal\n");
 		return;
 	}
 
-	signal.pid = atoi(pid);
-	signal.sig = atoi(sig);
+	arg.kill_a.pid = atoi(pid);
+	arg.kill_a.sig = atoi(sig);
 	if (!async) {
-		if (ioctl(fd, T_KILL, &signal) != 0)
+		if (ioctl(fd, T_KILL, &arg) != 0)
 			perror("ioctl");
-	} /*else {
-	    if (ioctl(fd, T_A_KILL, &signal) != 0)
-	    perror("ioctl");
-	    } */
+	}
 }
 
 void t_wait(int fd, int wait_all)
