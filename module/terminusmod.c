@@ -193,9 +193,93 @@ static void t_kill(struct work_struct *work)
 	wake_up(&cond_wait_queue);
 }
 
-static void t_wait(struct work_struct *work)
+static void t_wait(void *arg)
 {
+	struct waiter *wtr;
+	int i, left = 1;
+	struct pid_list pidlist;
+	int *tab;
+	struct pid *p;
 
+	wtr = kmalloc(sizeof(struct waiter), GFP_KERNEL);
+	INIT_DELAYED_WORK(&(wtr->wa_checker), t_wait_slow);
+	copy_from_user(&pidlist, arg, sizeof(struct pid_list));
+	/* Récupération de la taille de l'array */
+	tab = kmalloc_array(pidlist.size, sizeof(int), GFP_KERNEL);
+	if (tab == NULL)
+		return;
+	/* récup le tab en lui même */
+	copy_from_user(tab, pidlist.first, sizeof(int) * pidlist.size);
+
+	wtr->wa_pids =
+	    kzalloc(sizeof(struct task_struct *) * pidlist.size, GFP_KERNEL);
+
+	wtr->wa_pids_size = pidlist.size;
+
+	for (i = 0; i < pidlist.size; i++) {
+		p = find_get_pid(tab[i]);
+		if (!p)
+			goto nope_pid;
+		wtr->wa_pids[i] = get_pid_task(p, PIDTYPE_PID);
+		if (!wtr->wa_pids[i])
+			goto nope_pid;
+		put_pid(p);
+	}
+
+	while (1) {
+		left = 0;
+		/* pr_info("je suis dans le while(left)"); */
+		for (i = 0; i < wtr->wa_pids_size; i++) {
+			if (wtr->wa_pids[i] != NULL) {
+				left++;
+				if (!pid_alive(wtr->wa_pids[i])) {
+					put_task_struct(wtr->wa_pids[i]);
+					wtr->wa_pids[i] = NULL;
+				}
+			} else {
+				if (all != 1)
+					break;
+			}
+		}
+		if (left) {
+			if ((queue_delayed_work
+			     (station, &(wtr->wa_checker), DELAY)) == 0)
+				/*
+				 * Ralentir la boucle
+				 * t_wait_slow(&condition) en Asynchrone.
+				 */
+				/*Appel de wait_slow */
+				wtr->wa_fin = 0;
+			/* pr_info("Avant wait interrupt"); */
+			wait_event_interruptible(cond_wait_queue,
+						 wtr->wa_fin != 0);
+			/* pr_info("près wait interrupt"); */
+		} else
+			break;
+
+	}
+
+	kfree(wtr->wa_pids);
+	kfree(wtr);
+	kfree(tab);
+
+ nope_pid:
+	kfree(wtr->wa_pids);
+	kfree(wtr);
+	kfree(tab);
+}
+
+static void t_wait_slow(struct work_struct *work)
+{
+	struct waiter *wtr;
+	struct delayed_work *dw;
+
+	pr_info("t_wait_slow");
+	dw = to_delayed_work(work);
+	wtr = container_of(dw, struct waiter, wa_checker);
+
+	wtr->wa_fin = 1;
+	wake_up_interruptible(&cond_wait_queue);
 }
 
 static void t_meminfo(struct work_struct *work)
@@ -269,7 +353,10 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 		kfree(wk);
 		break;
 	case T_WAIT:
-		
+		t_wait((void *)arg, 0);
+		break;
+	case T_WAIT_ALL:
+		t_wait((void *)arg, 99);
 		break;
 	case T_MEMINFO:
 		sleep = 0;
