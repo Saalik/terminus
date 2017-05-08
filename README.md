@@ -62,11 +62,65 @@ Renvoie les informations du module
 
 ## Traces d'execution
 
+<code>
+root@vm-nmv client]# ./terminus
+> modinfo &
+> modinfo &
+> meminfo &
+> list
+ 2 MODINFO 3 MODINFO 4 MODINFO 5 MEMINFO
+> fg 2
+sending fg
+[ 1108.559857] we should not be here, handler w/id 3
+[ 1108.560871] we should not be here, handler w/id 4
+[ 1108.561934] we should not be here, handler w/id 5
+Name	�k
+Version
+Core	(nil)
+0 arguments
+> fg 3
+sending fg
+[ 1114.175909] we should not be here, handler w/id 4
+[ 1114.176632] we should not be here, handler w/id 5
+Name	
+Version
+Core	(nil)
+0 arguments
+> meminfo &
+> list
+ 4 MODINFO 5 MEMINFO 9 MEMINFO
+> fg 5
+sending fg
+[ 1172.117414] we should not be here, handler w/id 4
+[ 1172.118043] we should not be here, handler w/id 9
+TotalRam	512554 pages
+SharedRam	2106 pages
+FreeRam		488081 pages
+BufferRam	2427 pages
+TotalHigh	0 pages
+FreeHigh	0 pages
+Memory unit	4096 bytes
+> fg 9
+sending fg
+[ 1174.969562] we should not be here, handler w/id 4
+TotalRam	512554 pages
+SharedRam	2106 pages
+FreeRam		488078 pages
+BufferRam	2428 pages
+TotalHigh	0 pages
+FreeHigh	0 pages
+Memory unit	4096 bytes
+> fg 4
+sending fg
+Name	
+Version
+Core	(nil)
+0 arguments
+>
+</code>
 
 ## Ce qui a été fait
 
-Toutes les commandes ont été implémenter 
+Toutes les commandes ont été implémenter
 
 ## What's left:
-
-
