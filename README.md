@@ -119,4 +119,10 @@ Notre module passe le checkpatch.pl sans erreurs:
 total: 0 errors, 0 warnings, 486 lines checked
 
 terminusmod.c has no obvious style problems and is ready for submission.
+
+../../linux-4.2.3/scripts/checkpatch.pl -f terminus.h 
+total: 0 errors, 0 warnings, 107 lines checked
+
+terminus.h has no obvious style problems and is ready for submission.
+
 ```
