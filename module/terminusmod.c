@@ -229,8 +229,9 @@ static void t_wait(void *arg)
 		put_pid(p);
 	}
 	pr_info("got some pids");
+	/* l'incrémentation est faite dans la boucle et non dans le corps */
 	for (killed = 0; killed < wtr->wa_pids_size;) {
-		pr_info("forloop\n");
+		pr_info("%d processes are gone so far\n", killed);
 		for (i = 0; i < wtr->wa_pids_size; i++) {
 			if (wtr->wa_pids[i] != NULL) {
 				if (!pid_alive(wtr->wa_pids[i])) {
@@ -256,6 +257,8 @@ static void t_wait(void *arg)
 						 wtr->wa_fin != 0);
 		}
 	}
+
+	pr_info("delayed work canceled w/ value %d\n", cancel_delayed_work(&(wtr->wa_checker)));
 
  nope_pid:
 	kfree(wtr->wa_pids);
