@@ -311,7 +311,7 @@ static void t_modinfo(struct work_struct *work)
 
 	mod_name = kzalloc(T_BUF_STR * sizeof(char *), GFP_KERNEL);
 	handler = container_of(work, struct handler_struct, worker);
-
+	pr_info("before copy_from\n");
 	copy_from_user(mod_name, handler->arg.modinfo_a.arg, T_BUF_STR * sizeof(char));
 
 	pr_info("module name %s\n", mod_name);
@@ -347,6 +347,7 @@ void do_it(struct module_argument *arg)
 	pr_info("do it: just copied argument\n");
 	switch (arg->arg_type) {
 	case meminfo_t:
+		pr_info("meminfo\n");
 		INIT_WORK(&(handler->worker), t_meminfo);
 		break;
 	case modinfo_t:
@@ -355,6 +356,7 @@ void do_it(struct module_argument *arg)
 		pr_info("added work modinfo\n");
 		break;
 	default:
+		pr_info("default case\n");
 		break;
 	}
 	schedule_work(&(handler->worker));

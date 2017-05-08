@@ -60,7 +60,7 @@ void modinfo(int fd, char* module_name)
 {
 	char *tmp_ptr = NULL;
 	struct module_argument arg;
-	arg.arg_type = meminfo_t;
+	arg.arg_type = modinfo_t;
 	arg.async = 0;
 
 
