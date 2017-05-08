@@ -44,7 +44,7 @@ void show_results(struct module_argument arg)
 	printf("type is %d\n", arg.arg_type);
 	switch(arg.arg_type) {
 	case modinfo_t:
-		printf("%s\n%s\n%p\n%d arguments",
+		printf("Name\t%s\nVersion\t%s\nCore\t%p\n%d arguments",
 		       arg.modinfo_a.data.name,
 		       arg.modinfo_a.data.version,
 		       arg.modinfo_a.data.module_core,

@@ -71,10 +71,8 @@ struct my_infos {
 
 
 struct listing {
-	int id;
-	char** args;
-	int async;
-	char *ret;
+	struct module_argument *args;
+	int size;
 };
 
 enum argument_type {

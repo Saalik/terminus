@@ -37,8 +37,8 @@ struct waiter {
 };
 
 struct handler_struct {
+	int finished;
 	struct work_struct worker;
-	struct mutex mut;
 	struct list_head list;
 	struct module_argument arg;
 	int sleep;
@@ -53,7 +53,7 @@ static char* ret_async;
 static int task_id = 0;
 
 LIST_HEAD(tasks);
-
+struct mutex glob_mut;
 
 static int t_open(struct inode *i, struct file *f)
 {
@@ -90,7 +90,7 @@ static int __init start(void)
 {
 	int result = 0;
 	struct device *dev_return;
-
+	mutex_init(&glob_mut);
 	result = alloc_chrdev_region(&dev_number, 0, 1, "terminus");
 
 	if (result < 0)
@@ -158,7 +158,7 @@ static void async_janitor(struct handler_struct *handler)
 {
 	if (handler->arg.async) {
 		pr_info("first mutex lock, handler is %d @ %p\n", handler->arg.arg_type, handler);
-		mutex_lock(&handler->mut);
+		handler->finished = 1;
 		pr_info("unlocked all\n");
 	}
 }
@@ -167,13 +167,15 @@ static void t_list(struct work_struct *work)
 {
 	struct handler_struct *handler;
 	struct list_head *head;
-
+	pr_info("just about inside t_list\n");
+	mutex_lock(&glob_mut);
 	pr_info("inside t_list\n");
+
 	list_for_each(head,&tasks) {
 		handler = list_entry(head, struct handler_struct, list);
 		pr_info("task %d\n", handler->id);
 	}
-
+	mutex_unlock(&glob_mut);
 	handler = container_of(work, struct handler_struct, worker);
 	handler->sleep = 1;
 	wake_up(&cond_wait_queue);
@@ -181,35 +183,48 @@ static void t_list(struct work_struct *work)
 
 static void t_fg(struct work_struct *work)
 {
-	int id;
+	int id, done = 0;
 	struct handler_struct *handler, *handler_done;
-	struct list_head *head;
+	struct list_head *head, *tmp;
 
 	pr_info("getting handler\n");
 	handler = container_of(work, struct handler_struct, worker);
 	id = handler->arg.fg_a.id;
 	pr_info("looking for %d\n", id);
-	mutex_lock(&handler->mut);
+	mutex_lock(&glob_mut);
+	pr_info("do i get through here\n");
 	if (!list_empty(&tasks)) {
-		list_for_each(head, &tasks) {
+		list_for_each_safe(head, tmp, &tasks) {
+			pr_info("tis good?\n");
 			handler_done = list_entry(head, struct handler_struct, list);
-			if (handler_done->arg.fg_a.id == id) {
+			pr_info("should be good\n");
+			if (handler_done->id == id) {
+				pr_info("found handler %d\n", handler_done->id);
+				while (!done) {
+					pr_info("not done, maybe\n");
+					if (handler_done->finished) {
+						pr_info("done, copying to handler to hand off\n");
+						memcpy(handler, handler_done, sizeof(struct handler_struct));
+						pr_info("deleting from jobs\n");
+						list_del(&(handler_done->list));
 
-
+						done = 1;
+					}
+					else {
+						pr_info("waiting for\n");
+						wait_event(cond_wait_queue, handler_done->sleep != 0);
+						pr_info("waited for\n");
+					}
+				}
+			}
+			else {
+				pr_info("we should not be here, handler w/id %d\n", handler_done->id);
+				pr_info("we should NOT be looking for %d\n", id);
 			}
 		}
-		pr_info("list not empty\n");
-		handler_done = list_entry(&tasks, struct handler_struct, list);
-		pr_info("got handler %d, sleep %d, copying now\n", handler_done->arg.arg_type, handler->sleep);
-		pr_info("handler @ %p\n", handler_done);
-		memcpy(handler, handler_done, sizeof(struct handler_struct));
-		pr_info("deleting from list\n");
-		list_del(&(handler_done->list));
-		pr_info("freeing memory\n");
-		/*		kfree(handler_done); */
 	}
-	pr_info("unlocking mutex\n");
-	mutex_unlock(&handler->mut);
+	pr_info("done\n");
+    	mutex_unlock(&glob_mut);
 
 	handler->sleep = 1;
 	wake_up(&cond_wait_queue);
@@ -384,9 +399,7 @@ void do_it(struct module_argument *arg)
 	handler->sleep = 0;
 	handler->id = task_id++;
 
-	handler->id++;
 
-	mutex_init(&(handler->mut));
 
 	copy_from_user(&(handler->arg), arg, sizeof(struct module_argument));
 	switch (arg->arg_type) {
@@ -409,21 +422,23 @@ void do_it(struct module_argument *arg)
 		pr_info("default case\n");
 		break;
 	}
-	mutex_lock(&handler->mut);
+	mutex_lock(&glob_mut);
 	schedule_work(&(handler->worker));
 	/* fg is always synchronous. otherwise.. */
 	if (handler->arg.async && (arg->arg_type != fg_t) && (arg->arg_type != pid_list_t)) {
+		handler->finished = 0;
 		list_add_tail(&(handler->list), &tasks);
-		mutex_unlock(&handler->mut);
+		mutex_unlock(&glob_mut);
 		return;
 	}
 	else {
+		mutex_unlock(&glob_mut);
 		wait_event(cond_wait_queue, handler->sleep != 0);
 		pr_info("copying to user\n");
 		copy_to_user((void *) arg, (void *) &(handler->arg),
 			     sizeof(struct module_argument));
 		kfree(handler);
-		mutex_unlock(&handler->mut);
+
 	}
 	return;
 }
