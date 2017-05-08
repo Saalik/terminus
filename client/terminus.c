@@ -187,7 +187,9 @@ void t_fg(int fd)
 	else {
 		printf("sent ioctl\n");
 		show_results(arg);
+		printf("end of else\n");
 	}
+	printf("t_fg end\n");
 }
 
 int main(int argc, char ** argv)
@@ -247,6 +249,7 @@ int main(int argc, char ** argv)
 		}
 
 		if (lazy_cmp(user_strings[0], "fg") == 0) {
+			printf("sending fg\n");
 			t_fg(fd);
 			goto cleanup;
 		}
