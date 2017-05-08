@@ -111,6 +111,7 @@ static int __init start(void)
 	if (station == NULL)
 		return -1;
 
+	pr_info("Just got loaded!\n");
 	return 0;
  device_fail:
 	/*device_destroy(class, dev_number); */
@@ -274,7 +275,7 @@ static void t_wait(struct work_struct *work)
 	    kzalloc(sizeof(struct task_struct *) * pidlist.size, GFP_KERNEL);
 	pr_info("getting type\n");
 	wtr->wa_pids_size = pidlist.size;
-	pr_info("got size\n");
+	pr_info("got size = %d\n", pidlist.size);
 	pr_info("got type %d\n", handler->arg.arg_type);
 	for (i = 0; i < pidlist.size; i++) {
 		p = find_get_pid(tab[i]);
@@ -412,7 +413,7 @@ void do_it(struct module_argument *arg)
 	handler = kzalloc(sizeof(struct handler_struct), GFP_KERNEL);
 	handler->sleep = 0;
 	handler->id = task_id++;
-
+	pr_info("ABout to copy from\n");
 	copy_from_user(&(handler->arg), arg, sizeof(struct module_argument));
 	pr_info("do_it: case %d\n", arg->arg_type);
 	switch (arg->arg_type) {

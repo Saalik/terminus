@@ -150,7 +150,6 @@ void kill(int fd, char* pid, char* sig, int async)
 void t_wait(int fd, int wait_all)
 {
 	struct module_argument arg;
-	struct pid_list list;
 	int i;
 
 	if (wait_all)
@@ -177,7 +176,7 @@ void t_wait(int fd, int wait_all)
 	printf("meh? size %d\n", arg.pid_list_a.size);
 	for (i=0; i < arg.pid_list_a.size; i++) {
 		printf("copying over %s, i=%d\n", user_strings[i+1], i);
-		list.first[i] = atoi(user_strings[i+1]);
+		arg.pid_list_a.first[i] = atoi(user_strings[i+1]);
 	}
 	printf("again\n");
 	if (wait_all) {
