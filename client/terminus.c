@@ -199,11 +199,8 @@ void t_fg(int fd, char* id)
 		perror("ioctl");
 	}
 	else {
-		printf("sent ioctl\n");
 		show_results(arg);
-		printf("end of else\n");
 	}
-	printf("t_fg end\n");
 }
 
 void t_list(int fd)
@@ -215,7 +212,6 @@ void t_list(int fd)
 	arg.list_a.out = (char *) malloc(T_BUF_SIZE * sizeof(char));
 	arg.list_a.size = T_BUF_SIZE;
 
-	printf("sending list\n");
 	if (ioctl(fd, T_LIST, &arg) != 0) {
 		perror("ioctl");
 		return;
