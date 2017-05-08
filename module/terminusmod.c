@@ -393,6 +393,7 @@ void do_it(struct module_argument *arg)
 		list_add_tail(&(handler->doing_async), &doing.head);
 		mutex_unlock(&doing.mut);
 		/* handler will be freed in fg */
+		pr_info("doing in async\n");
 		return;
 	}
 	wait_event(cond_wait_queue, handler->sleep != 0);

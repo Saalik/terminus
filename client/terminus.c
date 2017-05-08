@@ -76,13 +76,13 @@ void meminfo(int fd, int async)
 	} else perror("ioctl");
 }
 
-void modinfo(int fd, char* module_name)
+void modinfo(int fd, char* module_name, int async)
 {
 	int i;
 	char *tmp_ptr = NULL;
 	struct module_argument arg;
 	arg.arg_type = modinfo_t;
-	arg.async = 0;
+	arg.async = async;
 
 
 	memset(&arg.modinfo_a, 0, sizeof(union arg_infomod));
@@ -218,7 +218,7 @@ int main(int argc, char ** argv)
 		}
 
 		if (lazy_cmp(user_strings[0], "modinfo") == 0) {
-			modinfo(fd, user_strings[1]);
+			modinfo(fd, user_strings[1], async);
 			goto cleanup;
 		}
 
