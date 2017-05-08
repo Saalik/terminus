@@ -59,48 +59,34 @@ void meminfo(int fd, int async)
 void modinfo(int fd, char* module_name)
 {
 	struct module_argument arg;
-	union arg_infomod info_module;
 	char *tmp_ptr = NULL;
 
-	memset(&info_module, 0, sizeof(union arg_infomod));
-	info_module.arg = (char *) malloc(T_BUF_STR * sizeof(char));
-	tmp_ptr = info_module.arg;
-	memset(info_module.arg, 0, T_BUF_STR);
+	memset(&arg.modinfo_a, 0, sizeof(union arg_infomod));
+	arg.modinfo_a.arg = (char *) malloc(T_BUF_STR * sizeof(char));
+	tmp_ptr = arg.modinfo_a.arg;
+	memset(arg.modinfo_a.arg, 0, T_BUF_STR);
 
 	if (module_name == NULL) {
 		printf("Il faut fournir un nom de module.\n");
 		free(tmp_ptr);
 		return;
 	}
-	strcpy(info_module.arg, module_name);
+	strcpy(arg.modinfo_a.arg, module_name);
 
-	printf("test\n");
-	while (tmp_ptr != NULL) {
-		printf("%c", *tmp_ptr);
-		fflush(stdout);
-		if (*tmp_ptr == '\n') {
-			*tmp_ptr = '\0';
-			break;
-		}
-		tmp_ptr++;
-	}
-	printf("test2\n");
-	tmp_ptr = info_module.arg;
-
-	if (ioctl(fd, T_MODINFO, &info_module) == 0) {
-		if (info_module.data.module_core == NULL) {
+	if (ioctl(fd, T_MODINFO, &arg) == 0) {
+		if (arg.modinfo_a.data.module_core == NULL) {
 			printf("Module %s pas trouvé.\n", module_name);
 			free(tmp_ptr);
 			return;
 		}
 		else {
 			printf("%s\n%s\n%p\n%d arguments",
-			       info_module.data.name,
-			       info_module.data.version,
-			       info_module.data.module_core,
-			       info_module.data.num_kp);
-			if (info_module.data.num_kp) {
-				printf(":\n%s", info_module.data.args);
+			       arg.modinfo_a.data.name,
+			       arg.modinfo_a.data.version,
+			       arg.modinfo_a.data.module_core,
+			       arg.modinfo_a.data.num_kp);
+			if (arg.modinfo_a.data.num_kp) {
+				printf(":\n%s", arg.modinfo_a.data.args);
 			}
 			free(tmp_ptr);
 			printf("\n");

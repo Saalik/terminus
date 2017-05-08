@@ -348,9 +348,9 @@ void do_it(struct module_argument *arg)
 	switch (arg->arg_type) {
 	case meminfo_t:
 		INIT_WORK(&(handler->worker), t_meminfo);
-
 		break;
 	case modinfo_t:
+		pr_info("adding work modinfo\n");
 		INIT_WORK(&(handler->worker), t_modinfo);
 	default:
 		break;
