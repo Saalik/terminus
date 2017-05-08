@@ -7,4 +7,4 @@ terminus: terminus.c
 	$(CC) -o $@ $< -I$(INC) -g -Wall
 
 clean:
-	rm terminus
+	rm -f terminus
