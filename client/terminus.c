@@ -89,12 +89,14 @@ void modinfo(int fd, char* module_name)
 			return;
 		}
 		else {
-			printf("%s\n%s\n%p\n%d arguments:\n%s\n",
+			printf("%s\n%s\n%p\n%d arguments",
 			       info_module.data.name,
 			       info_module.data.version,
 			       info_module.data.module_core,
-			       info_module.data.num_kp,
-			       info_module.data.args);
+			       info_module.data.num_kp);
+			if (info_module.data.num_kp) {
+				printf(":\n%s\n", info_module.data.args);
+			}
 			free(tmp_ptr);
 			return;
 		}
