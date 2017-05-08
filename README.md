@@ -61,12 +61,6 @@ Renvoie les informations du module
 ## Traces d'execution
 
 ```
-```
-[root@vm-nmv client]# ./terminus
-> modinfo &
-> modinfo &
-> meminfo &
-> list
 [root@vm-nmv client]# ./terminus
 > list
 > meminfo &
