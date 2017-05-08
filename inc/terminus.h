@@ -48,6 +48,11 @@ union arg_infomod {
 	char *arg;
 };
 
+struct fg_arguments {
+	int id;
+	char *string;
+};
+
 struct my_infos {
  	long long uptime;		/* Seconds since boot */
  	unsigned long long loads[3];	/* 1, 5, and 15 minute load averages */
@@ -66,7 +71,7 @@ struct my_infos {
 
 
 struct listing {
-	char* cmd;
+	int id;
 	char** args;
 	int async;
 	char *ret;
@@ -91,6 +96,7 @@ struct module_argument {
 		union arg_infomod modinfo_a;
 		struct listing list_a;
 		struct my_infos meminfo_a;
+		struct fg_arguments fg_a;
 	};
 };
 

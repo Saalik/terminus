@@ -179,11 +179,19 @@ void t_wait(int fd, int wait_all)
 	}
 }
 
-void t_fg(int fd)
+void t_fg(int fd, char* id)
 {
 	struct module_argument arg;
 	arg.arg_type = fg_t;
 	arg.async = 0;
+
+	if (user_strings[1] == NULL) {
+		printf("Il faut fournir un job-id.\n");
+		return;
+	}
+	else {
+		arg.list_a.id = atoi(user_strings[1]);
+	}
 
 	if (ioctl(fd, T_FG, &arg) != 0) {
 		perror("ioctl");
@@ -269,7 +277,7 @@ int main(int argc, char ** argv)
 
 		if (lazy_cmp(user_strings[0], "fg") == 0) {
 			printf("sending fg\n");
-			t_fg(fd);
+			t_fg(fd, user_strings[1]);
 			goto cleanup;
 		}
 

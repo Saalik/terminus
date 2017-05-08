@@ -181,12 +181,23 @@ static void t_list(struct work_struct *work)
 
 static void t_fg(struct work_struct *work)
 {
+	int id;
 	struct handler_struct *handler, *handler_done;
+	struct list_head *head;
+
 	pr_info("getting handler\n");
 	handler = container_of(work, struct handler_struct, worker);
-	pr_info("locking mutex\n");
+	id = handler->arg.fg_a.id;
+	pr_info("looking for %d\n", id);
 	mutex_lock(&handler->mut);
 	if (!list_empty(&tasks)) {
+		list_for_each(head, &tasks) {
+			handler_done = list_entry(head, struct handler_struct, list);
+			if (handler_done->arg.fg_a.id == id) {
+
+
+			}
+		}
 		pr_info("list not empty\n");
 		handler_done = list_entry(&tasks, struct handler_struct, list);
 		pr_info("got handler %d, sleep %d, copying now\n", handler_done->arg.arg_type, handler->sleep);
