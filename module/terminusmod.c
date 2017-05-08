@@ -194,16 +194,21 @@ static void t_list(struct work_struct *work)
 static void t_fg(struct work_struct *work)
 {
 	struct handler_struct *handler, *handler_done;
-
+	pr_info("getting handler\n");
 	handler = container_of(work, struct handler_struct, worker);
-
+	pr_info("locking mutex\n");
 	mutex_lock(&done.mut);
 	if (!list_empty(&done.head)) {
+		pr_info("list not empty\n");
 		handler_done = list_entry(&(done.head), struct handler_struct, done_async);
+		pr_info("got handler %d, sleep %d, copying now\n", handler_done->arg.arg_type, handler->sleep);
 		memcpy(handler, handler_done, sizeof(struct handler_struct));
+		pr_info("deleting from list\n");
 		list_del(&(handler_done->done_async));
-		kfree(handler_done);
+		pr_info("freeing memory\n");
+		/*		kfree(handler_done); */
 	}
+	pr_info("unlocking mutex\n");
 	mutex_unlock(&done.mut);
 
 	handler->sleep = 1;
@@ -411,10 +416,12 @@ void do_it(struct module_argument *arg)
 		pr_info("doing in async\n");
 		return;
 	}
-	wait_event(cond_wait_queue, handler->sleep != 0);
-	copy_to_user((void *) arg, (void *) &(handler->arg),
-		     sizeof(struct module_argument));
-	kfree(handler);
+	else {
+		wait_event(cond_wait_queue, handler->sleep != 0);
+		copy_to_user((void *) arg, (void *) &(handler->arg),
+			     sizeof(struct module_argument));
+		kfree(handler);
+	}
 	return;
 }
 
@@ -427,8 +434,6 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 
 	case T_LIST:
 		break;
-	case T_FG:
-		break;
 	case T_WAIT:
 		t_wait((void *)arg, 1);
 		break;
@@ -438,6 +443,7 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 	case T_KILL:
 	case T_MEMINFO:
 	case T_MODINFO:
+	case T_FG:
 		do_it((struct module_argument *) arg);
 		break;
 	default:

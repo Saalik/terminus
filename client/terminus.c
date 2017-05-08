@@ -185,6 +185,7 @@ void t_fg(int fd)
 		perror("ioctl");
 	}
 	else {
+		printf("sent ioctl\n");
 		show_results(arg);
 	}
 }
