@@ -31,7 +31,7 @@ La liste des commandes disponible est visible grace a la commande:
 Il est possible de lancé les commandes de façon asynchrone en utilisant le caractère &
 
 Commandes disponibles: 
-* _list_
+*  _list_
 * Permet de lister les commandes en court d'execution
 * _fg id_
 * Permet de récupérer les resultat des commandes lancées en asynchrone. Elle bloque jusqu'a que la commande donnée se termine
