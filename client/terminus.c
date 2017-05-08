@@ -115,10 +115,10 @@ void kill(int fd, char* pid, char* sig, int async)
 	if (!async) {
 		if (ioctl(fd, T_KILL, &signal) != 0)
 			perror("ioctl");
-	} else {
-		if (ioctl(fd, T_A_KILL, &signal) != 0)
-			perror("ioctl");
-	}
+	} /*else {
+	    if (ioctl(fd, T_A_KILL, &signal) != 0)
+	    perror("ioctl");
+	    } */
 }
 
 void t_wait(int fd, int wait_all)
@@ -141,17 +141,17 @@ void t_wait(int fd, int wait_all)
 
 	for (i=0; i < list.size; i++)
 		list.first[i] = atoi(user_strings[i+1]);
-	if (wait_all) {
+	/*	if (wait_all) {
 		if (ioctl(fd, T_WAIT_ALL, &list) != 0) {
 			perror("ioctl");
 			return;
 		}
-	} else {
+		} else {*/
 		if (ioctl(fd, T_WAIT, &list) != 0) {
 			perror("ioctl");
 			return;
 		}
-	}
+		/*}*/
 }
 
 int main(int argc, char ** argv)
