@@ -254,8 +254,8 @@ static void t_wait(void *arg, int all)
 			wait_event_interruptible(cond_wait_queue,
 						 wtr->wa_fin != 0);
 			/* pr_info("près wait interrupt"); */
-		} else
-			break;
+			} else
+				break;
 
 	}
 
