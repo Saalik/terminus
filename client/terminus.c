@@ -173,7 +173,7 @@ void t_wait(int fd, int wait_all)
 	printf("sending wait w/type %d, size %d\n", arg.arg_type, arg.pid_list_a.size);
 	arg.pid_list_a.first = (int *) malloc(list.size * sizeof(int));
 	arg.pid_list_a.ret = (struct pid_ret *) malloc(list.size * sizeof(struct pid_ret));
-	printf("meh?\n");
+	printf("meh? size %d\n", arg.pid_list_a.size);
 	for (i=0; i < arg.pid_list_a.size; i++) {
 		list.first[i] = atoi(user_strings[i+1]);
 	}
