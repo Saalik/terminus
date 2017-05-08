@@ -66,7 +66,6 @@ void modinfo(int fd, char* module_name)
 
 	memset(&arg.modinfo_a, 0, sizeof(union arg_infomod));
 	arg.modinfo_a.arg = (char *) malloc(T_BUF_STR * sizeof(char));
-	tmp_ptr = arg.modinfo_a.arg;
 	memset(arg.modinfo_a.arg, 0, T_BUF_STR);
 
 	if (module_name == NULL) {
@@ -75,6 +74,11 @@ void modinfo(int fd, char* module_name)
 		return;
 	}
 	strcpy(arg.modinfo_a.arg, module_name);
+
+	for (tmp_ptr = arg.modinfo_a.arg; tmp_ptr; tmp_ptr++)
+		if (*tmp_ptr == '\n') *tmp_ptr = '\0';
+
+	tmp_ptr = arg.modinfo_a.arg;
 
 	if (ioctl(fd, T_MODINFO, &arg) == 0) {
 		if (arg.modinfo_a.data.module_core == NULL) {
