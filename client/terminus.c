@@ -58,6 +58,7 @@ void meminfo(int fd, int async)
 
 void modinfo(int fd, char* module_name)
 {
+	int i;
 	char *tmp_ptr = NULL;
 	struct module_argument arg;
 	arg.arg_type = modinfo_t;
@@ -76,8 +77,9 @@ void modinfo(int fd, char* module_name)
 	strcpy(arg.modinfo_a.arg, module_name);
 	printf("modname %s\n", arg.modinfo_a.arg);
 
-	for (tmp_ptr = arg.modinfo_a.arg; tmp_ptr != NULL; tmp_ptr++)
-		if (tmp_ptr && (*tmp_ptr == '\n')) *tmp_ptr = '\0';
+	for (i=0; i<T_BUF_STR; i++)
+		if (arg.modinfo_a.arg[i] == '\n')
+			arg.modinfo_a.arg[i] = '\0';
 
 	printf("after newline\n");
 	tmp_ptr = arg.modinfo_a.arg;
