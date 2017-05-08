@@ -92,7 +92,24 @@ Core	0xffffffffa000f000
 ```
 ## Ce qui a été fait
 
+Ce projet est continuer de deux parties majeures:
 
+### Le module noyau
+
+Le module noyau créer un périphérique dev/terminus qui est utilisé afin de communiquer avec le programme utilisateur.
+Une fois ce périphérique créer il reçoit par le biais d'ioctl des commandes a traiter du programme utilisateur. 
+Le handler d'ioctl se charge de recevoir et utilise des waitqueues ou workqueues, selon si le traitement est synchrone ou asynchrone,
+et renvoie le résultat de l'opérations au moment voulut.
+
+### Le client 
+
+Le client est un simple intermédiaire entre l'utilisateurs et le module. C'est a lui que reviens la tache d'afficher les informations 
+communiqués par le module. Pour ce faire il se présente sous la forme d'une invite de commande. Lorsque qu'une commande est rentrée 
+par l'utilisateur il se charge de préparé l'ensemble des paramètres néccessaire pour le module puisse effectué l'opération.
+
+### Le cachier des charges
+
+Il a été rempli dans son ensemble
 
 ## Précisions
 
