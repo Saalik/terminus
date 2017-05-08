@@ -150,22 +150,25 @@ void kill(int fd, char* pid, char* sig, int async)
 
 void t_wait(int fd, int wait_all)
 {
+	struct module_argument arg;
 	struct pid_list list;
 	int i;
 
-	list.size = 0;
-	list.first = NULL;
+	arg.arg_type = wait_t;
+	arg.async = 0;
+	arg.pid_list_a.size = 0;
+	arg.pid_list_a.first = NULL;
 
 	for (i=1; user_strings[i] != NULL; i++)
-		list.size++;
+		arg.pid_list_a.size++;
 
 	if (list.size == 0) {
 		printf("Il faut au moins un pid.\n");
 		return;
 	}
 
-	list.first = (int *) malloc(list.size * sizeof(int));
-	list.ret = (struct pid_ret *) malloc(list.size * sizeof(struct pid_ret));
+	arg.pid_list_a.first = (int *) malloc(list.size * sizeof(int));
+	arg.pid_list_a.ret = (struct pid_ret *) malloc(list.size * sizeof(struct pid_ret));
 
 	for (i=0; i < list.size; i++)
 		list.first[i] = atoi(user_strings[i+1]);
