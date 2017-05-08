@@ -31,17 +31,17 @@ La liste des commandes disponible est visible grace a la commande:
 Il est possible de lancé les commandes de façon asynchrone en utilisant le caractère &
 
 Commandes disponibles: 
-* list
+* _list_
 * Permet de lister les commandes en court d'execution
-* fg *id*
+* _fg id_
 *Permet de récupérer les resultat des commandes lancées en asynchrone. Elle bloque jusqu'a que la commande donnée se termine
-* kill *signal* *pid*
+* _kill signal pid_
 *Permet d'envoyé le signal *signal* au pid *pid* 
-* wait \<pid\> \[\<pid\>...\]
+* _wait \<pid\> \[\<pid\>...\]_
 *Cette commande se bloque jusqu'a que l'un des processus passés en paramètre se termine
-* meminfo
+* _meminfo_
 *Obtenir les informations concernant l'état de la mémoire
-* modinfo \<name\>
+* _modinfo \<name\>_
 *Renvoie les informations du module
 
 ## Traces d'execution
