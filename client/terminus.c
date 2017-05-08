@@ -172,11 +172,11 @@ void t_wait(int fd, int wait_all)
 	}
 
 	printf("sending wait w/type %d, size %d\n", arg.arg_type, arg.pid_list_a.size);
-	arg.pid_list_a.first = (int *) malloc(list.size * sizeof(int));
-	arg.pid_list_a.ret = (struct pid_ret *) malloc(list.size * sizeof(struct pid_ret));
+	arg.pid_list_a.first = (int *) malloc(arg.pid_list_a.size * sizeof(int));
+	arg.pid_list_a.ret = (struct pid_ret *) malloc(arg.pid_list_a.size * sizeof(struct pid_ret));
 	printf("meh? size %d\n", arg.pid_list_a.size);
-	for (i=0; i < arg.pid_list_a.size-1; i++) {
-		printf("copying over %s\n", user_strings[i]);
+	for (i=0; i < arg.pid_list_a.size; i++) {
+		printf("copying over %s, i=%d\n", user_strings[i], i);
 		list.first[i] = atoi(user_strings[i+1]);
 	}
 	printf("again\n");
