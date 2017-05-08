@@ -46,8 +46,8 @@ struct waiter {
 	int sleep;
 };
 
-struct meminfo_waiter {
-	struct work_struct ws;
+struct handler_struct {
+	struct work_struct worker;
 	struct module_argument arg;
 	int sleep;
 };
@@ -294,11 +294,11 @@ static void t_wait_slow(struct work_struct *work)
 
 static void t_meminfo(struct work_struct *work)
 {
-	struct meminfo_waiter *mew;
+	struct handler_struct *handler;
 
-	mew = container_of(work, struct meminfo_waiter, ws);
-	si_meminfo(&(mew->arg.meminfo_a));
-	mew->sleep = 1;
+	handler = container_of(work, struct handler_struct, worker);
+	si_meminfo((struct sysinfo *) &(handler->arg.meminfo_a));
+	handler->sleep = 1;
 	wake_up(&cond_wait_queue);
 }
 
@@ -331,6 +331,18 @@ static void t_modinfo(struct work_struct *work)
 	wake_up(&cond_wait_queue);
 }
 
+void do_it(struct module_argument *arg)
+{
+	switch (arg->arg_type) {
+	case meminfo_t:
+
+		break;
+	default:
+		break;
+	}
+	return;
+}
+
 
 long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 {
@@ -343,6 +355,7 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 	struct meminfo_waiter *mew;
 	/* Used for modinfo */
 	struct modinfo_waiter *mow;
+	struct handler_struct *handler;
 
 	switch(cmd) {
 
@@ -371,12 +384,12 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 		t_wait((void *)arg, 0);
 		break;
 	case T_MEMINFO:
-		mew = kzalloc(sizeof(struct meminfo_waiter), GFP_KERNEL);
-		mew->sleep = 0;
-		INIT_WORK(&(mew->ws), t_meminfo);
-		schedule_work(&(mew->ws));
-		wait_event(cond_wait_queue, mew->sleep!=0);
-		copy_to_user((void *)arg, (void*)&(mew->arg),
+		handler = kzalloc(sizeof(struct handler_struct), GFP_KERNEL);
+		handler->sleep = 0;
+		INIT_WORK(&(handler->worker), t_meminfo);
+		schedule_work(&(handler->worker));
+		wait_event(cond_wait_queue, handler->sleep!=0);
+		copy_to_user((void *)arg, (void*)&(handler->arg),
 		 	     sizeof(struct my_infos));
 		kfree(mew);
 		break;
