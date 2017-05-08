@@ -41,7 +41,8 @@ struct waiter {
 struct handler_struct {
 	int finished; /* Définit la fin de la tâche. */
 	struct work_struct worker; /* workqueue associé */
-	struct list_head list; /* Liste utilisée pour les éxections asynchrones */
+	struct list_head list; /* Liste utilisée pour
+				  les executions asynchrones */
 	struct module_argument arg; /* Argument de l'ioctl */
 	int sleep; /* Barrière pour wakeup */
 	int id; /* Identifiant du job */
@@ -259,7 +260,8 @@ static void t_wait(struct work_struct *work)
 	pidlist = handler->arg.pid_list_a;
 
 	/* On récupère la structure pidlist */
-	copy_from_user(&pidlist, &handler->arg.pid_list_a, sizeof(struct pid_list));
+	copy_from_user(&pidlist, &handler->arg.pid_list_a,
+		       sizeof(struct pid_list));
 
 	tab = kcalloc(pidlist.size, sizeof(int), GFP_KERNEL);
 	if (tab == NULL)
