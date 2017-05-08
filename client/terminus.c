@@ -258,6 +258,12 @@ int main(int argc, char ** argv)
 			goto cleanup;
 		}
 
+		if (lazy_cmp(user_strings[0], "list") == 0) {
+			printf("sending list\n");
+			t_fg(fd);
+			goto cleanup;
+		}
+
 		printf("usage: %s commande [args]\n", argv[0]);
 		printf("help pour la liste des commandes\n");
 

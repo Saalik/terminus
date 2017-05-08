@@ -45,18 +45,6 @@ struct handler_struct {
 	int id;
 };
 
-struct currently_doing {
-	struct list_head head;
-	struct mutex mut;
-};
-
-struct already_done {
-	struct list_head head;
-	struct mutex mut;
-};
-
-struct currently_doing doing;
-struct already_done done;
 
 static struct listing *listcmd;
 static int nbcmd;
@@ -100,9 +88,6 @@ static int __init start(void)
 {
 	int result = 0;
 	struct device *dev_return;
-
-	mutex_init(&doing.mut);
-	mutex_init(&done.mut);
 
 	result = alloc_chrdev_region(&dev_number, 0, 1, "terminus");
 
@@ -398,6 +383,9 @@ void do_it(struct module_argument *arg)
 	case fg_t:
 		INIT_WORK(&(handler->worker), t_fg);
 		break;
+	case pid_list_t:
+		INIT_WORK(&(handler->worker), t_list);
+		break;
 	default:
 		pr_info("default case\n");
 		break;
@@ -428,8 +416,6 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 
 	switch(cmd) {
 
-	case T_LIST:
-		break;
 	case T_WAIT:
 		t_wait((void *)arg, 1);
 		break;
@@ -440,6 +426,7 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 	case T_MEMINFO:
 	case T_MODINFO:
 	case T_FG:
+	case T_LIST:
 		do_it((struct module_argument *) arg);
 		break;
 	default:
