@@ -161,7 +161,7 @@ void t_wait(int fd, int wait_all)
 int main(int argc, char ** argv)
 {
 	int fd = 0;
-	int i;
+	int i, async = 0;
 	char user_string[T_BUF_STR];
 
 	fd = open(T_PATH, O_RDWR);
@@ -179,8 +179,10 @@ int main(int argc, char ** argv)
 	while (prompt_user(user_string, T_BUF_STR) > 0) {
 		user_strings[0] = strtok(user_string, " ");
 
-
 		for (i=1; (user_strings[i] = strtok(NULL, " ")) != NULL; i++);
+
+		if ((user_strings[i-1]) && (*user_strings[i-1] == '&'))
+			async = 1;
 
 		if (lazy_cmp(user_strings[0], "help") == 0) {
 			list_commandes();
@@ -198,12 +200,7 @@ int main(int argc, char ** argv)
 		}
 
 		if (lazy_cmp(user_strings[0], "kill") == 0) {
-			kill(fd, user_strings[1], user_strings[2], 0);
-			goto cleanup;
-		}
-
-		if (lazy_cmp(user_strings[0], "akill") == 0) {
-			kill(fd, user_strings[1], user_strings[2], 1);
+			kill(fd, user_strings[1], user_strings[2], async);
 			goto cleanup;
 		}
 
@@ -225,6 +222,7 @@ int main(int argc, char ** argv)
 	cleanup:
 		memset(user_string, 0, T_BUF_STR);
 		memset(user_strings, 0, T_BUF_STR);
+		async = 0;
 
 	}
 	printf("\n");
