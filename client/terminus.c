@@ -41,7 +41,6 @@ size_t lazy_cmp(char *s1, char *s2) {
 
 void show_results(struct module_argument arg)
 {
-	int i = 0;
 	switch(arg.arg_type) {
 	case modinfo_t:
 		printf("Name\t%s\nVersion\t%s\nCore\t%p\n%d arguments",
