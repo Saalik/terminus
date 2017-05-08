@@ -190,7 +190,7 @@ void t_fg(int fd, char* id)
 		return;
 	}
 	else {
-		arg.list_a.id = atoi(user_strings[1]);
+		arg.fg_a.id = atoi(user_strings[1]);
 	}
 
 	if (ioctl(fd, T_FG, &arg) != 0) {
