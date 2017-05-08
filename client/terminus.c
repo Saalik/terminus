@@ -35,7 +35,8 @@ void list_commandes()
 	       );
 }
 
-/* s2 est supposé directement être un string */
+/* Comparateur de string pour les flemmards, à deux arguments.
+   s2 est supposé directement être un string */
 size_t lazy_cmp(char *s1, char *s2) {
 	return strncmp(s1, s2, strlen(s2));
 }
@@ -91,6 +92,7 @@ void modinfo(int fd, char* module_name, int async)
 
 
 	memset(&arg.modinfo_a, 0, sizeof(union arg_infomod));
+
 	arg.modinfo_a.arg = (char *) malloc(T_BUF_STR * sizeof(char));
 	memset(arg.modinfo_a.arg, 0, T_BUF_STR);
 
@@ -109,11 +111,12 @@ void modinfo(int fd, char* module_name, int async)
 	tmp_ptr = arg.modinfo_a.arg;
 
 	if (ioctl(fd, T_MODINFO, &arg) == 0) {
-
+		/* Retour direct si asynchrone. */
 		if (arg.async == 1) {
 			free(tmp_ptr);
 			return;
 		}
+
 		if (arg.modinfo_a.data.module_core == NULL) {
 			printf("Module %s pas trouvé.\n", module_name);
 			free(tmp_ptr);
@@ -170,15 +173,15 @@ void t_wait(int fd, int wait_all)
 		return;
 	}
 
-	printf("sending wait w/type %d, size %d\n", arg.arg_type, arg.pid_list_a.size);
+	/* Allocation de la liste des arguments. Au minimum une case dans les tableaux. */
 	arg.pid_list_a.first = (int *) malloc(arg.pid_list_a.size * sizeof(int));
 	arg.pid_list_a.ret = (struct pid_ret *) malloc(arg.pid_list_a.size * sizeof(struct pid_ret));
-	printf("meh? size %d\n", arg.pid_list_a.size);
+
 	for (i=0; i < arg.pid_list_a.size; i++) {
-		printf("copying over %s, i=%d\n", user_strings[i+1], i);
-		arg.pid_list_a.first[i] = atoi(user_strings[i+1]);
+			arg.pid_list_a.first[i] = atoi(user_strings[i+1]);
 	}
-	printf("again\n");
+
+
 	if (wait_all) {
 		if (ioctl(fd, T_WAIT_ALL, &arg) != 0) {
 			perror("ioctl");
@@ -199,7 +202,6 @@ void t_fg(int fd, char* id)
 	arg.async = 0;
 
 	if (user_strings[1] == NULL) {
-		printf("Il faut fournir un job-id.\n");
 		return;
 	}
 	else {
@@ -227,6 +229,8 @@ void t_list(int fd)
 		perror("ioctl");
 		return;
 	} else {
+		/* La liste des tâches est une seule chaîne de caractères.
+		   Pas besoin de la traiter spécifiquement */
 		printf("%s", arg.list_a.out);
 	}
 
