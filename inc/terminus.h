@@ -17,11 +17,15 @@
 #define T_WAIT_ALL _IOR(TERMINUS_MAGIC, 8, int)
 /* #define T_A_MEMINFO _IOR(TERMINUS_MAGIC, 9, int) */
 
+struct pid_ret {
+	int pid;
+	int ret;
+};
 
 struct pid_list {
 	int size;
 	int *first;
-	int ret;
+	struct pid_ret *ret;
 };
 
 struct signal_s {
@@ -44,18 +48,7 @@ union arg_infomod {
 	char *arg;
 };
 
-struct listing {
-	char* cmd;
-	char** args;
-	int async;
-	char *ret;
-};
-
-#endif /* TERMINUS */
-
-
-
- struct my_infos {
+struct my_infos {
  	long long uptime;		/* Seconds since boot */
  	unsigned long long loads[3];	/* 1, 5, and 15 minute load averages */
  	unsigned long long totalram;	/* Total usable main memory size */
@@ -69,4 +62,38 @@ struct listing {
  	unsigned long long totalhigh;	/* Total high memory size */
  	unsigned long long freehigh;	/* Available high memory size */
  	unsigned long mem_unit;	        /* Memory unit size in bytes */
- };
+};
+
+
+struct listing {
+	char* cmd;
+	char** args;
+	int async;
+	char *ret;
+};
+
+enum argument_type {
+	pid_list_t = 1,
+	fg_t = 2,
+	kill_t = 3,
+	wait_t = 4,
+	modinfo_t = 5,
+	meminfo_t = 6,
+	wait_all_t = 7
+};
+
+struct module_argument {
+	int async;
+	enum argument_type arg_type;
+	union  {
+		struct pid_list pid_list_a;
+		struct signal_s kill_a;
+		struct infomod wait_a;
+		union arg_infomod modinfo_a;
+		struct listing list_a;
+		struct my_infos meminfo_a;
+	};
+};
+
+
+#endif /* TERMINUS */

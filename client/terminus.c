@@ -39,17 +39,20 @@ size_t lazy_cmp(char *s1, char *s2) {
 	return strncmp(s1, s2, strlen(s2));
 }
 
-void meminfo(int fd)
+void meminfo(int fd, int async)
 {
-	struct my_infos infos;
-	if (ioctl(fd, T_MEMINFO, &infos) == 0) {
-		printf("TotalRam\t%llu pages\n", infos.totalram);
-		printf("SharedRam\t%llu pages\n", infos.sharedram);
-		printf("FreeRam\t\t%llu pages\n", infos.freeram);
-		printf("BufferRam\t%llu pages\n", infos.bufferram);
-		printf("TotalHigh\t%llu pages\n", infos.totalhigh);
-		printf("FreeHigh\t%llu pages\n", infos.freehigh);
-		printf("Memory unit\t%lu bytes\n", infos.mem_unit);
+	struct module_argument arg;
+	arg.arg_type = meminfo_t;
+	arg.async = async;
+
+	if (ioctl(fd, T_MEMINFO, &arg) == 0) {
+		printf("TotalRam\t%llu pages\n", arg.meminfo_a.totalram);
+		printf("SharedRam\t%llu pages\n", arg.meminfo_a.sharedram);
+		printf("FreeRam\t\t%llu pages\n", arg.meminfo_a.freeram);
+		printf("BufferRam\t%llu pages\n", arg.meminfo_a.bufferram);
+		printf("TotalHigh\t%llu pages\n", arg.meminfo_a.totalhigh);
+		printf("FreeHigh\t%llu pages\n", arg.meminfo_a.freehigh);
+		printf("Memory unit\t%lu bytes\n", arg.meminfo_a.mem_unit);
 	} else perror("ioctl");
 }
 
@@ -190,7 +193,7 @@ int main(int argc, char ** argv)
 		}
 
 		if (lazy_cmp(user_strings[0], "meminfo") == 0) {
-			meminfo(fd);
+			meminfo(fd, async);
 			goto cleanup;
 		}
 

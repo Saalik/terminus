@@ -48,8 +48,7 @@ struct waiter {
 
 struct meminfo_waiter {
 	struct work_struct ws;
-	struct sysinfo values;
-	int async;
+	struct module_argument arg;
 	int sleep;
 };
 
@@ -298,7 +297,7 @@ static void t_meminfo(struct work_struct *work)
 	struct meminfo_waiter *mew;
 
 	mew = container_of(work, struct meminfo_waiter, ws);
-	si_meminfo(&(mew->values));
+	si_meminfo(&(mew->arg.meminfo_a));
 	mew->sleep = 1;
 	wake_up(&cond_wait_queue);
 }
@@ -374,11 +373,10 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 	case T_MEMINFO:
 		mew = kzalloc(sizeof(struct meminfo_waiter), GFP_KERNEL);
 		mew->sleep = 0;
-		mew->async= 0;
 		INIT_WORK(&(mew->ws), t_meminfo);
 		schedule_work(&(mew->ws));
 		wait_event(cond_wait_queue, mew->sleep!=0);
-		copy_to_user((void *)arg, (void*)&(mew->values),
+		copy_to_user((void *)arg, (void*)&(mew->arg),
 		 	     sizeof(struct my_infos));
 		kfree(mew);
 		break;
