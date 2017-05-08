@@ -23,20 +23,20 @@ Importer les fichiers dans la machine virtuelle puis:
 Pour lancer l'outil:
 <pre><code>./terminus</code></pre>
 
-La liste des commandes disponible est visible grace a la commande:
+La liste des commandes disponibles est visible grace à la commande:
 <pre><code>help</code></pre>
 
-Il est possible de lancer les commandes meminfo, modinfo, kill de manière asynchrone en utilisant le caractère _'&'_
+Il est possible de lancer les commandes meminfo, modinfo, kill de manière asynchrone en utilisant le caractères _'&'_
 
 **Commandes disponibles:**
 
 <pre><code>list</code></pre>
 
-Permet de lister les commandes en court d'execution
+Permet de lister les commandes en cours d'éxecution
 
 <pre><code>fg id</code></pre>
 
-Permet de récupérer les resultat des commandes lancées en asynchrone. Bloque jusqu'a que la commande donnée se termine
+Permet de récupérer les résultats des commandes lancées en asynchrone. Bloque jusqu'à ce que la commande donnée se termine
 
 <pre><code>kill signal pid</code></pre>
 
@@ -44,11 +44,11 @@ Permet d'envoyer le signal *signal* au pid *pid*
 
 <pre><code>wait pid [pid...]</code></pre>
 
-Cette commande se bloque jusqu'a que l'un des processus passés en paramètre se termine
+Cette commande se bloque jusqu'à ce que l'un des processus passés en paramètre se termine
 
 <pre><code>waitall pid [pid...]</code></pre>
 
-**Commande supplementaire** Cette commande se bloque jusqu'a que **tous** les processus passés en paramètre se termine
+**Commande supplementaire** Cette commande se bloque jusqu'a que **tous** les processus passés en paramètre se terminent
 
 <pre><code>meminfo</code></pre>
 
@@ -58,7 +58,7 @@ Obtenir des informations concernant l'état de la mémoire
 
 Renvoie les informations du module
 
-## Traces d'execution
+## Traces d'éxecution
 
 ```
 [root@vm-nmv client]# ./terminus
@@ -92,31 +92,31 @@ Core	0xffffffffa000f000
 ```
 ## Ce qui a été fait
 
-Ce projet est continuer de deux parties majeures:
+Ce projet est constitué de deux parties majeures:
 
 ### Le module noyau
 
-Le module noyau créer un périphérique dev/terminus qui est utilisé afin de communiquer avec le programme utilisateur.
-Une fois ce périphérique créer il reçoit par le biais d'ioctl des commandes a traiter du programme utilisateur. 
+Le module noyau crée un périphérique /dev/terminus qui est utilisé afin de communiquer avec le programme utilisateur.
+Une fois ce périphérique créé, il reçoit par le biais d'ioctl des commandes à traiter du programme utilisateur.
 Le handler d'ioctl se charge de recevoir et utilise des waitqueues ou workqueues, selon si le traitement est synchrone ou asynchrone,
-et renvoie le résultat de l'opérations au moment voulut.
+et renvoie le résultat de l'opération au moment voulu.
 
-### Le client 
+### Le client
 
-Le client est un simple intermédiaire entre l'utilisateurs et le module. C'est a lui que reviens la tache d'afficher les informations 
-communiqués par le module. Pour ce faire il se présente sous la forme d'une invite de commande. Lorsque qu'une commande est rentrée 
-par l'utilisateur il se charge de préparé l'ensemble des paramètres néccessaire pour le module puisse effectué l'opération.
+Le client est un simple intermédiaire entre l'utilisateur et le module. C'est à lui que revient la tâche d'afficher les informations
+communiquées par le module. Pour ce faire, il se présente sous la forme d'une invite de commande. Lorsque qu'une commande est rentrée
+par l'utilisateur, il se charge de préparer l'ensemble des paramètres néccessaires pour que le module puisse effectuer l'opération.
 
-### Le cachier des charges
+### Le cahier des charges
 
-Il a été rempli dans son ensemble
+A été rempli dans son ensemble.
 
 ## Précisions
 
 Notre module passe le checkpatch.pl sans erreurs:
 ```
 ../../linux-4.2.3/scripts/checkpatch.pl -f terminusmod.c
-total: 0 errors, 0 warnings, 487 lines checked
+total: 0 errors, 0 warnings, 486 lines checked
 
 terminusmod.c has no obvious style problems and is ready for submission.
 ```
