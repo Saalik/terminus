@@ -45,7 +45,7 @@ Permet de récupérer les resultat des commandes lancées en asynchrone. Bloque 
 
 Permet d'envoyer le signal *signal* au pid *pid*
 
-<pre><code>wait \<pid\> \[\<pid\>...\]</code></pre>
+<pre><code>wait pid [pid...]</code></pre>
 
 Cette commande se bloque jusqu'a que l'un des processus passés en paramètre se termine
 
@@ -53,7 +53,7 @@ Cette commande se bloque jusqu'a que l'un des processus passés en paramètre se
 
 Obtenir des informations concernant l'état de la mémoire
 
-<pre><code>modinfo \<name\></code></pre>
+<pre><code>modinfo name</code></pre>
 
 Renvoie les informations du module
 
