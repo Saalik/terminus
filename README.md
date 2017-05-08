@@ -28,7 +28,7 @@ Pour lancer l'outil:
 La liste des commandes disponible est visible grace a la commande:
 <pre><code>help</code></pre>
 
-Il est possible de lancer les commandes de manière asynchrone en utilisant le caractère _&_
+Il est possible de lancer les commandes meminfo, modinfo, kill de manière asynchrone en utilisant le caractère _'&'_
 
 
 Commandes disponibles: 
@@ -48,6 +48,10 @@ Permet d'envoyer le signal *signal* au pid *pid*
 <pre><code>wait pid [pid...]</code></pre>
 
 Cette commande se bloque jusqu'a que l'un des processus passés en paramètre se termine
+
+<pre><code>waitall pid [pid...]</code></pre>
+
+Cette commande se bloque jusqu'a que **tout** les processus passés en paramètre se termine
 
 <pre><code>meminfo</code></pre>
 
