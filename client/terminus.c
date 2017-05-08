@@ -28,9 +28,10 @@ void list_commandes()
 	printf("modinfo [module]: infos sur un module noyau\n"
 	       "meminfo: infos sur la memoire\n"
 	       "kill [pid] [signal]: envoyer un signal a un processus\n"
-	       "akill [pid] [signal]: envoyer un signal a un processus mais plus tard\n"
 	       "wait [pid] ([pid2], ...): attendre la fin d'un des pid donnes\n"
 	       "waitall [pid] ([pid2], ...): attendre la fin de tous les pid\n"
+	       "jobs: liste des jobs asynchrones encore non recuperes\n"
+	       "fg [job_id]: recuperation des resultats d'un job job_id\n"
 	       );
 }
 

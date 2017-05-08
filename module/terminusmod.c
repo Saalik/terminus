@@ -27,6 +27,7 @@ static dev_t dev_number;
 static struct cdev c_dev;
 static struct class *class;
 
+/* Structure utilisée pour WAIT et WAITALL) */
 struct waiter {
 	struct delayed_work wa_checker;
 	int wa_fin;
@@ -36,18 +37,19 @@ struct waiter {
 	int sleep;
 };
 
+/* Structure utilisée au niveau de tous les handlers. */
 struct handler_struct {
-	int finished;
-	struct work_struct worker;
-	struct list_head list;
-	struct module_argument arg;
-	int sleep;
-	int id;
+	int finished; /* Définit la fin de la tâche. */
+	struct work_struct worker; /* workqueue associé */
+	struct list_head list; /* Liste utilisée pour les éxections asynchrones */
+	struct module_argument arg; /* Argument de l'ioctl */
+	int sleep; /* Barrière pour wakeup */
+	int id; /* Identifiant du job */
 };
 
-static int task_id;
-LIST_HEAD(tasks);
-struct mutex glob_mut;
+static int task_id; /* Compteur global pour associer un identifiant à un job */
+LIST_HEAD(tasks);   /* Liste des jobs asynchrones */
+struct mutex glob_mut; /* Mutex associé aux jobs asynchrones */
 static int once;
 
 static int t_open(struct inode *i, struct file *f)
@@ -111,7 +113,7 @@ static int __init start(void)
 	if (station == NULL)
 		return -1;
 
-	pr_info("Just got loaded!\n");
+	pr_info("Terminus\n");
 	return 0;
  device_fail:
 	/*device_destroy(class, dev_number); */
@@ -126,7 +128,7 @@ static int __init start(void)
 static void __exit end(void)
 {
 	destroy_workqueue(station);
-	pr_alert("Terminus");
+	pr_alert("Terminus done\n");
 	device_destroy(class, dev_number);
 	class_destroy(class);
 	cdev_del(&c_dev);
@@ -136,7 +138,7 @@ static void __exit end(void)
 module_init(start);
 module_exit(end);
 
-/* appelé à chaque fin de handler */
+/* appelé à chaque fin de handler, au cas où on serait asynchrones */
 static void async_janitor(struct handler_struct *handler)
 {
 	if (handler->arg.async)
@@ -257,11 +259,11 @@ static void t_wait(struct work_struct *work)
 	handler = container_of(work, struct handler_struct, worker);
 	wtr = kmalloc(sizeof(struct waiter), GFP_KERNEL);
 	INIT_DELAYED_WORK(&(wtr->wa_checker), t_wait_slow);
-	pr_info("%d\n", __LINE__);
+
 	pidlist = handler->arg.pid_list_a;
 
 	copy_from_user(&pidlist, &handler->arg.pid_list_a, sizeof(struct pid_list));
-	pr_info("%d\n", __LINE__);
+
 	tab = kcalloc(pidlist.size, sizeof(int), GFP_KERNEL);
 	if (tab == NULL)
 		return;

@@ -34,23 +34,25 @@ struct signal_s {
 	int state;
 };
 
+/* Détails d'un module. */
 struct infomod {
-	char  name[T_BUF_STR];
-	char  version[T_BUF_STR];
-	void  *module_core;
-	unsigned int num_kp;
-	char args[T_BUF_STR];
+	char  name[T_BUF_STR];    /* Nom du module */
+	char  version[T_BUF_STR]; /* Version */
+	void  *module_core;       /* Adresse de chargement */
+	unsigned int num_kp;      /* Nombre d'arguments */
+	char args[T_BUF_STR];     /* Arguments */
 };
 
-
+/* Argument passé à l'ioctl.
+   arg représente le nom du module donné par l'utilisateur */
 union arg_infomod {
 	struct infomod data;
 	char *arg;
 };
 
 struct fg_arguments {
-	int id;
-	char *string;
+	int id;        /* Identifiant d'un job */
+	char *string;  /* Descriptif du job  */
 };
 
 struct my_infos {
@@ -69,13 +71,14 @@ struct my_infos {
  	unsigned long mem_unit;	        /* Memory unit size in bytes */
 };
 
-
+/* Structure utilisée pour énumérer les détails des jobs */
 struct listing {
 	struct module_argument *args;
 	char* out;
 	int size;
 };
 
+/* Type d'argument utilisée pour struct module_argument */
 enum argument_type {
 	pid_list_t = 1,
 	fg_t = 2,
@@ -87,6 +90,7 @@ enum argument_type {
 	args_end
 };
 
+/* Structure principale passée à l'ioctl englobant les structures ci-dessus */
 struct module_argument {
 	int async;
 	enum argument_type arg_type;
