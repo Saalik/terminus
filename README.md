@@ -1,12 +1,10 @@
-# terminus - Projet PNL
+# Projet PNL - terminus
 
 Oskar Viljasaar [3000989] - Saalik Hatia [3000442]
 
 ## Introduction
 
 Projet de l'UE PNL - 4l402 dont l'objectif est de réaliser un outil en ligne de commande.
-
-Commandes a implémenter:
 
 L'application a deux parties:
 - Client
