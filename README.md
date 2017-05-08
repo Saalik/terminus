@@ -61,52 +61,7 @@ Renvoie les informations du module
 ## Traces d'execution
 
 ```
-root@vm-nmv client]# ./terminus
-> modinfo &
-> modinfo &
-> meminfo &
-> list
- 2 MODINFO 3 MODINFO 4 MODINFO 5 MEMINFO
-> fg 2
-sending fg
-Name	�k
-Version
-Core	(nil)
-0 arguments
-> fg 3
-sending fg
-Name	
-Version
-Core	(nil)
-0 arguments
-> meminfo &
-> list
- 4 MODINFO 5 MEMINFO 9 MEMINFO
-> fg 5
-sending fg
-TotalRam	512554 pages
-SharedRam	2106 pages
-FreeRam		488081 pages
-BufferRam	2427 pages
-TotalHigh	0 pages
-FreeHigh	0 pages
-Memory unit	4096 bytes
-> fg 9
-sending fg
-TotalRam	512554 pages
-SharedRam	2106 pages
-FreeRam		488078 pages
-BufferRam	2428 pages
-TotalHigh	0 pages
-FreeHigh	0 pages
-Memory unit	4096 bytes
-> fg 4
-sending fg
-Name	
-Version
-Core	(nil)
-0 arguments
->
+
 ```
 
 ## Ce qui a été fait
