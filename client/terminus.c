@@ -58,20 +58,22 @@ void meminfo(int fd, int async)
 
 void modinfo(int fd, char* module_name)
 {
+	struct module_argument arg;
 	union arg_infomod info_module;
 	char *tmp_ptr = NULL;
 
 	memset(&info_module, 0, sizeof(union arg_infomod));
 	info_module.arg = (char *) malloc(T_BUF_STR * sizeof(char));
-
+	tmp_ptr = info_module.arg;
 	memset(info_module.arg, 0, T_BUF_STR);
 
 	if (module_name == NULL) {
 		printf("Il faut fournir un nom de module.\n");
+		free(tmp_ptr);
 		return;
 	}
 	strcpy(info_module.arg, module_name);
-	tmp_ptr = info_module.arg;
+
 	printf("test\n");
 	while (tmp_ptr != NULL) {
 		printf("%c", *tmp_ptr);

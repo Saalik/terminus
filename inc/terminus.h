@@ -88,7 +88,6 @@ struct module_argument {
 	union  {
 		struct pid_list pid_list_a;
 		struct signal_s kill_a;
-		struct infomod wait_a;
 		union arg_infomod modinfo_a;
 		struct listing list_a;
 		struct my_infos meminfo_a;

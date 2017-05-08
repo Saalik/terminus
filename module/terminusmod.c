@@ -304,30 +304,36 @@ static void t_meminfo(struct work_struct *work)
 
 static void t_modinfo(struct work_struct *work)
 {
+	struct handler_struct *handler;
 	struct module *mod;
-	struct modinfo_waiter *mow;
-	char *mod_name = NULL;
 	int i = 0;
-	mow = container_of(work, struct modinfo_waiter, ws);
-	mod_name = mow->arg;
+	char *mod_name;
+
+	mod_name = kzalloc(T_BUF_STR * sizeof(char *), GFP_KERNEL);
+	handler = container_of(work, struct handler_struct, worker);
+
+	copy_from_user(mod_name, handler->arg.modinfo_a.arg, T_BUF_STR * sizeof(char));
+
 	pr_info("module name %s\n", mod_name);
-	mod = find_module(mod_name);
+	mod = find_module(handler->arg.modinfo_a.data.name);
 	if (mod != NULL) {
-		scnprintf(mow->im.name, T_BUF_STR, "%s", mod->name);
-		scnprintf(mow->im.version, T_BUF_STR,
+		scnprintf(handler->arg.modinfo_a.data.name, T_BUF_STR, "%s", mod->name);
+		scnprintf(handler->arg.modinfo_a.data.version, T_BUF_STR,
 			  "%s", mod->version);
-		mow->im.module_core = mod->module_core;
-		mow->im.num_kp = mod->num_kp;
+		handler->arg.modinfo_a.data.module_core = mod->module_core;
+		handler->arg.modinfo_a.data.num_kp = mod->num_kp;
 		while (i < mod->num_kp) {
 			/*kernel paramkp */
-			scnprintf(mow->im.args, T_BUF_STR,
+			scnprintf(handler->arg.modinfo_a.data.args, T_BUF_STR,
 				  "%s ", mod->kp[i].name);
 			i++;
 		}
 	} else {
-		mow->im.module_core = NULL;
+		handler->arg.modinfo_a.data.module_core = NULL;
 	}
-	mow->sleep=1;
+
+	kfree(mod_name);
+	handler->sleep=1;
 	wake_up(&cond_wait_queue);
 }
 
@@ -342,12 +348,14 @@ void do_it(struct module_argument *arg)
 	switch (arg->arg_type) {
 	case meminfo_t:
 		INIT_WORK(&(handler->worker), t_meminfo);
-		schedule_work(&(handler->worker));
+
 		break;
+	case modinfo_t:
+		INIT_WORK(&(handler->worker), t_modinfo);
 	default:
 		break;
 	}
-
+	schedule_work(&(handler->worker));
 	wait_event(cond_wait_queue, handler->sleep != 0);
 	copy_to_user((void *) arg, (void *) &(handler->arg),
 		     sizeof(struct module_argument));
@@ -394,19 +402,8 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 		t_wait((void *)arg, 0);
 		break;
 	case T_MEMINFO:
-		do_it((struct module_argument *) arg);
-		break;
 	case T_MODINFO:
-		mow = kzalloc(sizeof(struct modinfo_waiter), GFP_KERNEL);
-		mow->sleep = 0;
-		copy_from_user(&mow->arg, (void *) arg, sizeof(char) * T_BUF_STR);
-		mow->async=0;
-		INIT_WORK(&(mow->ws), t_modinfo);
-		schedule_work(&(mow->ws));
-		wait_event(cond_wait_queue, mow->sleep!=0);
-		copy_to_user((void*)arg, (void*)&mow->im,
-			     sizeof(struct infomod));
-		kfree(mow);
+		do_it((struct module_argument *) arg);
 		break;
 	default:
 		pr_alert("Unkown command");
