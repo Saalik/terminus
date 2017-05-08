@@ -223,7 +223,7 @@ static void t_kill(struct work_struct *work)
 {
 	struct handler_struct *handler;
 	struct pid *pid_target;
-	
+
 	handler = container_of(work, struct handler_struct, worker);
 	pid_target = find_get_pid(handler->arg.kill_a.pid);
 
@@ -403,9 +403,8 @@ void do_it(struct module_argument *arg)
 	handler->sleep = 0;
 	handler->id = task_id++;
 
-
-
 	copy_from_user(&(handler->arg), arg, sizeof(struct module_argument));
+	pr_info("do_it: case %d\n", arg->arg_type);
 	switch (arg->arg_type) {
 	case meminfo_t:
 		INIT_WORK(&(handler->worker), t_meminfo);

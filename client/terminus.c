@@ -153,7 +153,11 @@ void t_wait(int fd, int wait_all)
 	struct pid_list list;
 	int i;
 
-	arg.arg_type = wait_t;
+	if (wait_all)
+		arg.arg_type = wait_all_t;
+	else
+		arg.arg_type = wait_t;
+
 	arg.async = 0;
 	arg.pid_list_a.size = 0;
 	arg.pid_list_a.first = NULL;
@@ -172,12 +176,12 @@ void t_wait(int fd, int wait_all)
 	for (i=0; i < list.size; i++)
 		list.first[i] = atoi(user_strings[i+1]);
 	if (wait_all) {
-		if (ioctl(fd, T_WAIT_ALL, &list) != 0) {
+		if (ioctl(fd, T_WAIT_ALL, &arg) != 0) {
 			perror("ioctl");
 			return;
 		}
 	} else {
-		if (ioctl(fd, T_WAIT, &list) != 0) {
+		if (ioctl(fd, T_WAIT, &arg) != 0) {
 			perror("ioctl");
 			return;
 		}
