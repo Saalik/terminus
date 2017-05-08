@@ -170,12 +170,13 @@ void t_wait(int fd, int wait_all)
 		return;
 	}
 
-	printf("sending wait w/type %d\n", arg.arg_type);
+	printf("sending wait w/type %d, size %d\n", arg.arg_type, arg.pid_list_a.size);
 	arg.pid_list_a.first = (int *) malloc(list.size * sizeof(int));
 	arg.pid_list_a.ret = (struct pid_ret *) malloc(list.size * sizeof(struct pid_ret));
 	printf("meh?\n");
-	for (i=0; i < list.size; i++)
+	for (i=0; i < list.size-1; i++) {
 		list.first[i] = atoi(user_strings[i+1]);
+	}
 	printf("again\n");
 	if (wait_all) {
 		if (ioctl(fd, T_WAIT_ALL, &arg) != 0) {
