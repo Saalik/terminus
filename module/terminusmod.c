@@ -34,6 +34,7 @@ struct workkiller {
 	struct work_struct wk_ws;
 	struct signal_s signal;
 	int async;
+	int sleep;
 };
 
 struct waiter {
@@ -42,12 +43,14 @@ struct waiter {
 	struct task_struct **wa_pids;
 	int wa_pids_size;
 	int async;
+	int sleep;
 };
 
 struct meminfo_waiter {
 	struct work_struct ws;
 	struct sysinfo values;
 	int async;
+	int sleep;
 };
 
 struct modinfo_waiter {
@@ -55,6 +58,7 @@ struct modinfo_waiter {
 	struct infomod im;
 	char *arg;
 	int async;
+	int sleep;
 };
 
 static struct listing *listcmd;
@@ -91,7 +95,6 @@ static const struct file_operations fops = {
 */
 
 static struct workqueue_struct *station;
-static int sleep = 0;
 
 DECLARE_WAIT_QUEUE_HEAD(cond_wait_queue);
 static void t_wait_slow(struct work_struct *work);
@@ -166,7 +169,7 @@ module_exit(end);
 
 static void t_list(struct work_struct *work)
 {
-	
+
 }
 
 static void t_fg(struct work_struct *work)
@@ -178,10 +181,10 @@ static void t_kill(struct work_struct *work)
 {
 	struct workkiller *wk;
 	struct pid *pid_target;
-	
+
 	wk= container_of(work, struct workkiller, wk_ws);
 	pid_target = find_get_pid(wk->signal.pid);
-	
+
 	/* Si on a bien trouvé un processus correspondant. */
 	if (pid_target){
 		wk->signal.state = 1;
@@ -189,7 +192,7 @@ static void t_kill(struct work_struct *work)
 	}else{
 		wk->signal.state = 0;
 	}
-	sleep = 1;
+	wk->sleep = 1;
 	wake_up(&cond_wait_queue);
 }
 
@@ -201,10 +204,10 @@ static void t_wait(struct work_struct *work)
 static void t_meminfo(struct work_struct *work)
 {
 	struct meminfo_waiter *mew;
-	
+
 	mew = container_of(work, struct meminfo_waiter, ws);
 	si_meminfo(&(mew->values));
-	sleep = 1;
+	mew->sleep = 1;
 	wake_up(&cond_wait_queue);
 }
 
@@ -233,7 +236,7 @@ static void t_modinfo(struct work_struct *work)
 	} else {
 		mow->im.module_core = NULL;
 	}
-	sleep=1;
+	mow->sleep=1;
 	wake_up(&cond_wait_queue);
 }
 
@@ -249,7 +252,7 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 	struct meminfo_waiter *mew;
 	/* Used for modinfo */
 	struct modinfo_waiter *mow;
-	
+
 	switch(cmd) {
 
 	case T_LIST:
@@ -257,39 +260,39 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 	case T_FG:
 		break;
 	case T_KILL:
-		sleep = 0;
 		wk = kmalloc(sizeof(struct workkiller), GFP_KERNEL);
+		wk->sleep = 0;
 		copy_from_user(&(wk->signal), (void *)arg,
 			       sizeof(struct signal_s));
 		INIT_WORK(&(wk->wk_ws), t_kill);
 		schedule_work(&(wk->wk_ws));
-		wait_event(cond_wait_queue, sleep!=0);
+		wait_event(cond_wait_queue, wk->sleep!=0);
 		copy_to_user((void *)arg, (void*)&(wk->signal),
 		 	     sizeof(struct signal_s));
 		kfree(wk);
 		break;
 	case T_WAIT:
-		
+
 		break;
 	case T_MEMINFO:
-		sleep = 0;
 		mew = kzalloc(sizeof(struct meminfo_waiter), GFP_KERNEL);
+		mew->sleep = 0;
 		mew->async= 0;
 		INIT_WORK(&(mew->ws), t_meminfo);
 		schedule_work(&(mew->ws));
-		wait_event(cond_wait_queue, sleep!=0);
+		wait_event(cond_wait_queue, mew->sleep!=0);
 		copy_to_user((void *)arg, (void*)&(mew->values),
 		 	     sizeof(struct my_infos));
 		kfree(mew);
 		break;
 	case T_MODINFO:
-		sleep = 0;
 		mow = kzalloc(sizeof(struct modinfo_waiter), GFP_KERNEL);
+		mow->sleep = 0;
 		copy_from_user(&mow->arg, (void *) arg, sizeof(char) * T_BUF_STR);
 		mow->async=0;
 		INIT_WORK(&(mow->ws), t_modinfo);
 		schedule_work(&(mow->ws));
-		wait_event(cond_wait_queue, sleep!=0);
+		wait_event(cond_wait_queue, mow->sleep!=0);
 		copy_to_user((void*)arg, (void*)&mow->im,
 			     sizeof(struct infomod));
 		kfree(mow);

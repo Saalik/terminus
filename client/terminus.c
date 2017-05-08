@@ -95,9 +95,10 @@ void modinfo(int fd, char* module_name)
 			       info_module.data.module_core,
 			       info_module.data.num_kp);
 			if (info_module.data.num_kp) {
-				printf(":\n%s\n", info_module.data.args);
+				printf(":\n%s", info_module.data.args);
 			}
 			free(tmp_ptr);
+			printf("\n");
 			return;
 		}
 	} else perror("ioctl");
