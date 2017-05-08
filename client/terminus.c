@@ -75,7 +75,7 @@ void modinfo(int fd, char* module_name)
 		return;
 	}
 	strcpy(arg.modinfo_a.arg, module_name);
-	printf("modname %s\n", arg.modinfo_a.arg);
+	printf("modname %s @ %p\n", arg.modinfo_a.arg, arg.modinfo_a.arg);
 
 	for (i=0; i<T_BUF_STR; i++)
 		if (arg.modinfo_a.arg[i] == '\n')

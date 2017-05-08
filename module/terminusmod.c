@@ -311,7 +311,7 @@ static void t_modinfo(struct work_struct *work)
 
 	mod_name = kzalloc(T_BUF_STR * sizeof(char *), GFP_KERNEL);
 	handler = container_of(work, struct handler_struct, worker);
-	pr_info("before copy_from\n");
+	pr_info("before copy_from %p\n", handler->arg.modinfo_a.arg);
 	copy_from_user(mod_name, handler->arg.modinfo_a.arg, T_BUF_STR * sizeof(char));
 
 	pr_info("module name %s\n", mod_name);
