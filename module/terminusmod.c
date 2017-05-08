@@ -348,7 +348,6 @@ static void t_wait_slow(struct work_struct *work)
 	struct waiter *wtr;
 	struct delayed_work *dw;
 
-	pr_info("t_wait_slow");
 	dw = to_delayed_work(work);
 	wtr = container_of(dw, struct waiter, wa_checker);
 
