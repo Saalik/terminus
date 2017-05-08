@@ -76,10 +76,11 @@ static void t_wait_slow(struct work_struct *work);
 
 static int __init start(void)
 {
-	task_id = 0;
-	int result = 0;
+	int result;
 	struct device *dev_return;
 
+	task_id = 0;
+	result = 0;
 	mutex_init(&glob_mut);
 	result = alloc_chrdev_region(&dev_number, 0, 1, "terminus");
 	if (result < 0)
@@ -267,7 +268,7 @@ static void t_wait(struct work_struct *work)
 	/* récup le tab en lui même */
 	/* copy_from_user(tab, pidlist.first, sizeof(int) * pidlist.size); */
 
-	rets = kcalloc(pidlist.size * sizeof(struct pid_ret), GFP_KERNEL);
+	rets = kcalloc(pidlist.size, sizeof(struct pid_ret), GFP_KERNEL);
 
 	wtr->wa_pids =
 	    kzalloc(sizeof(struct task_struct *) * pidlist.size, GFP_KERNEL);
@@ -368,7 +369,7 @@ static void t_modinfo(struct work_struct *work)
 	int i = 0;
 	char *mod_name;
 
-	mod_name = kcalloc(T_BUF_STR * sizeof(char), GFP_KERNEL);
+	mod_name = kcalloc(T_BUF_STR, sizeof(char), GFP_KERNEL);
 	handler = container_of(work, struct handler_struct, worker);
 	pr_info("before copy_from %p\n", handler->arg.modinfo_a.arg);
 	copy_from_user(mod_name, (void *)handler->arg.modinfo_a.arg,
