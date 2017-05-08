@@ -106,8 +106,11 @@ void modinfo(int fd, char* module_name, int async)
 	tmp_ptr = arg.modinfo_a.arg;
 
 	if (ioctl(fd, T_MODINFO, &arg) == 0) {
+
 		if (arg.async == 1) {
+			printf("got modinfo stuff async\n");
 			free(tmp_ptr);
+			printf("after free\n");
 			return;
 		}
 		if (arg.modinfo_a.data.module_core == NULL) {
