@@ -8,13 +8,6 @@ Projet de l'UE PNL - 4l402 dont l'objectif est de réaliser un outils en ligne d
 
 Commandes a implémenter:
 
-* list
-* fg \<id\>
-* kill \<signal\> \<pid\>
-* wait \<pid\> \[\<pid\>...\]
-* meminfo
-* modinfo \<name\>
-
 L'application a deux parties:
 - Client
 - Module
@@ -35,6 +28,14 @@ Puis pour lancer l'outil:
 La liste des commandes disponible est visible grace a la commande:
 <pre><code>help</code></pre>
 
+Commandes disponibles: 
+<pre><code>* list
+* fg \<id\>
+* kill \<signal\> \<pid\>
+* wait \<pid\> \[\<pid\>...\]
+* meminfo
+* modinfo \<name\>
+</pre></code>
 ## Traces d'execution
 
 
