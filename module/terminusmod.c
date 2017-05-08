@@ -351,8 +351,6 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 	struct workkiller *wk;
 	/* Used for wait */
 	/* struct waiter *wtr; */
-	/* Used for meminfo */
-	struct meminfo_waiter *mew;
 	/* Used for modinfo */
 	struct modinfo_waiter *mow;
 	struct handler_struct *handler;
@@ -391,7 +389,7 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 		wait_event(cond_wait_queue, handler->sleep!=0);
 		copy_to_user((void *)arg, (void*)&(handler->arg),
 		 	     sizeof(struct my_infos));
-		kfree(mew);
+		kfree(handler);
 		break;
 	case T_MODINFO:
 		mow = kzalloc(sizeof(struct modinfo_waiter), GFP_KERNEL);
