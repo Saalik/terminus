@@ -193,7 +193,7 @@ static void t_kill(struct work_struct *work)
 	wake_up(&cond_wait_queue);
 }
 
-static void t_wait(void *arg)
+static void t_wait(void *arg, int all)
 {
 	struct waiter *wtr;
 	int i, left = 1;
