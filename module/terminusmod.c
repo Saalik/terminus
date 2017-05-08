@@ -167,16 +167,38 @@ static void t_list(struct work_struct *work)
 {
 	struct handler_struct *handler;
 	struct list_head *head;
+	int list_size;
+	int i = 0;
+	struct listing *list_args;
+	char* out = kzalloc(sizeof(char) * T_BUF_SIZE, GFP_KERNEL);
+	char *aux = out;
 	pr_info("just about inside t_list\n");
 	mutex_lock(&glob_mut);
 	pr_info("inside t_list\n");
 
 	list_for_each(head,&tasks) {
+		pr_info("sup head\n");
 		handler = list_entry(head, struct handler_struct, list);
+		pr_info("switching off\n");
+		switch (handler->arg.arg_type) {
+		case modinfo_t:
+			scnprintf(aux, " %d MODINFO\n", handler->id);
+
+			aux += strlen(aux)-1;
+			break;
+		default:
+			break;
+		}
 		pr_info("task %d\n", handler->id);
 	}
 	mutex_unlock(&glob_mut);
+
+
 	handler = container_of(work, struct handler_struct, worker);
+
+
+	copy_to_user(handler->arg.list_a.out, out, T_BUF_SIZE * sizeof(char));
+	kfree(out);
 	handler->sleep = 1;
 	wake_up(&cond_wait_queue);
 }

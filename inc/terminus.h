@@ -72,6 +72,7 @@ struct my_infos {
 
 struct listing {
 	struct module_argument *args;
+	char* out;
 	int size;
 };
 
@@ -82,7 +83,8 @@ enum argument_type {
 	wait_t = 4,
 	modinfo_t = 5,
 	meminfo_t = 6,
-	wait_all_t = 7
+	wait_all_t = 7,
+	args_end
 };
 
 struct module_argument {
