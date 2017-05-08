@@ -74,7 +74,7 @@ void modinfo(int fd, char* module_name)
 		return;
 	}
 	strcpy(arg.modinfo_a.arg, module_name);
-	printf("before newline\n");
+	printf("modname %s\n");
 	for (tmp_ptr = arg.modinfo_a.arg; tmp_ptr != NULL; tmp_ptr++)
 		if (*tmp_ptr == '\n') *tmp_ptr = '\0';
 	printf("after newline\n");
