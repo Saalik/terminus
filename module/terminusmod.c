@@ -231,7 +231,7 @@ static void t_wait(void *arg, int all)
 
 	while (1) {
 		left = 0;
-		/* pr_info("je suis dans le while(left)"); */
+		 pr_info("je suis dans le while(left)");
 		for (i = 0; i < wtr->wa_pids_size; i++) {
 			if (wtr->wa_pids[i] != NULL) {
 				left++;
@@ -253,10 +253,10 @@ static void t_wait(void *arg, int all)
 				 */
 				/*Appel de wait_slow */
 				wtr->wa_fin = 0;
-			/* pr_info("Avant wait interrupt"); */
+			pr_info("Avant wait interrupt");
 			wait_event_interruptible(cond_wait_queue,
 						 wtr->wa_fin != 0);
-			/* pr_info("près wait interrupt"); */
+			pr_info("près wait interrupt");
 		} else
 			break;
 
