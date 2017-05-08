@@ -256,25 +256,27 @@ static void t_wait(struct work_struct *work)
 	handler = container_of(work, struct handler_struct, worker);
 	wtr = kmalloc(sizeof(struct waiter), GFP_KERNEL);
 	INIT_DELAYED_WORK(&(wtr->wa_checker), t_wait_slow);
-
+	pr_info("%s\n", __LINE__);
 	pidlist = handler->arg.pid_list_a;
 	tab = kmalloc_array(pidlist.size, sizeof(int), GFP_KERNEL);
 	tab = handler->arg.pid_list_a.first;
 	/* copy_from_user(&pidlist, arg, sizeof(struct pid_list)); */
 	/* Récupération de la taille de l'array */
 	/*tab = kmalloc_array(pidlist.size, sizeof(int), GFP_KERNEL); */
+		pr_info("%s\n", __LINE__);
 	if (tab == NULL)
 		return;
 	/* récup le tab en lui même */
 	/* copy_from_user(tab, pidlist.first, sizeof(int) * pidlist.size); */
-
+	pr_info("%s\n", __LINE__);
 	rets = kcalloc(pidlist.size, sizeof(struct pid_ret), GFP_KERNEL);
-
+	pr_info("%s\n", __LINE__);
 	wtr->wa_pids =
 	    kzalloc(sizeof(struct task_struct *) * pidlist.size, GFP_KERNEL);
-
+	pr_info("getting type\n");
 	wtr->wa_pids_size = pidlist.size;
-
+	pr_info("got size\n");
+	pr_info("got type %d\n", handler->arg.arg_type);
 	for (i = 0; i < pidlist.size; i++) {
 		p = find_get_pid(tab[i]);
 		if (!p)
@@ -397,9 +399,7 @@ static void t_modinfo(struct work_struct *work)
 	kfree(mod_name);
 	handler->sleep = 1;
 
-	pr_info("janiting start\n");
 	async_janitor(handler);
-	pr_info(" end\n");
 
 	wake_up(&cond_wait_queue);
 }
@@ -431,10 +431,12 @@ void do_it(struct module_argument *arg)
 		INIT_WORK(&(handler->worker), t_list);
 		break;
 	case wait_t:
+		pr_info("%s\n", __LINE__);
 		once = 1;
 		INIT_WORK(&(handler->worker), t_wait);
 		break;
 	case wait_all_t:
+		pr_info("%s\n", __LINE__);
 		once = 0;
 		INIT_WORK(&(handler->worker), t_wait);
 		break;
@@ -463,10 +465,7 @@ void do_it(struct module_argument *arg)
 
 long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 {
-	/* Reborn of the project */
-
 	switch (cmd) {
-
 	case T_WAIT:
 	case T_WAIT_ALL:
 	case T_KILL:
