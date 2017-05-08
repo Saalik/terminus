@@ -1,4 +1,4 @@
-# terminus - Projet PNL
+# Projet PNL - terminus
 
 Oskar Viljasaar [3000989] - Saalik Hatia [3000442]
 
