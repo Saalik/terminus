@@ -262,23 +262,24 @@ static void t_wait(struct work_struct *work)
 
 	pidlist = handler->arg.pid_list_a;
 
+	/* On récupère la structure pidlist */
 	copy_from_user(&pidlist, &handler->arg.pid_list_a, sizeof(struct pid_list));
 
 	tab = kcalloc(pidlist.size, sizeof(int), GFP_KERNEL);
 	if (tab == NULL)
 		return;
-	/* récup le tab en lui même */
 
+	/* On récupère le tableau dans la structure */
 	copy_from_user(tab, pidlist.first, sizeof(int) * pidlist.size);
-	pr_info("%d\n", __LINE__);
+
 	rets = kcalloc(pidlist.size, sizeof(struct pid_ret), GFP_KERNEL);
-	pr_info("%d\n", __LINE__);
+
 	wtr->wa_pids =
 	    kzalloc(sizeof(struct task_struct *) * pidlist.size, GFP_KERNEL);
-	pr_info("getting type\n");
+
 	wtr->wa_pids_size = pidlist.size;
-	pr_info("got size = %d\n", pidlist.size);
-	pr_info("got type %d\n", handler->arg.arg_type);
+
+	/* On récupère les struct task à partir des pid */
 	for (i = 0; i < pidlist.size; i++) {
 		p = find_get_pid(tab[i]);
 		if (!p)
@@ -288,13 +289,13 @@ static void t_wait(struct work_struct *work)
 			goto nope_pid;
 		put_pid(p);
 	}
-	pr_info("got some pids w/ %d pids\n", wtr->wa_pids_size);
+
 	/* l'incrémentation est faite dans la boucle et non dans le corps */
 	for (killed = 0; killed < wtr->wa_pids_size;) {
-		pr_info("%d processes are gone so far\n", killed);
 		for (i = 0; i < wtr->wa_pids_size; i++) {
 			if (wtr->wa_pids[i] != NULL) {
 				if (!pid_alive(wtr->wa_pids[i])) {
+					/* On incrémente ici */
 					killed++;
 					rets[i].pid = tab[i];
 					rets[i].ret =
@@ -332,12 +333,12 @@ static void t_wait(struct work_struct *work)
 		}
 	}
  nope_pid:
-	pr_info("woh message avant free woh\n");
+
 	kfree(wtr->wa_pids);
 	kfree(wtr);
 	kfree(tab);
 	kfree(rets);
-	pr_info("aprs free\n");
+
 	handler->sleep = 1;
 	async_janitor(handler);
 	wake_up(&cond_wait_queue);
@@ -377,11 +378,10 @@ static void t_modinfo(struct work_struct *work)
 
 	mod_name = kcalloc(T_BUF_STR, sizeof(char), GFP_KERNEL);
 	handler = container_of(work, struct handler_struct, worker);
-	pr_info("before copy_from %p\n", handler->arg.modinfo_a.arg);
+	/* On récupère le nom du module depuis l'userspace */
 	copy_from_user(mod_name, (void *)handler->arg.modinfo_a.arg,
 		       T_BUF_STR * sizeof(char));
 
-	pr_info("module name %s + %d\n", mod_name, mod_name[0]);
 	mod = find_module(mod_name);
 	if (mod != NULL) {
 		scnprintf(handler->arg.modinfo_a.data.name, T_BUF_STR, "%s",
@@ -397,6 +397,8 @@ static void t_modinfo(struct work_struct *work)
 			i++;
 		}
 	} else {
+		/* Aucun module correspondant trouvé, l'userspace se sert de
+		   cette valeur pour sortir une erreur */
 		handler->arg.modinfo_a.data.module_core = NULL;
 	}
 
@@ -408,6 +410,9 @@ static void t_modinfo(struct work_struct *work)
 	wake_up(&cond_wait_queue);
 }
 
+/* Handler principal des ioctl.
+   On préparte une workqueue par fonction et on la met à se lancer,
+   qu'elle soit asynchrone ou non. */
 void do_it(struct module_argument *arg)
 {
 	struct handler_struct *handler;
@@ -415,9 +420,8 @@ void do_it(struct module_argument *arg)
 	handler = kzalloc(sizeof(struct handler_struct), GFP_KERNEL);
 	handler->sleep = 0;
 	handler->id = task_id++;
-	pr_info("ABout to copy from\n");
 	copy_from_user(&(handler->arg), arg, sizeof(struct module_argument));
-	pr_info("do_it: case %d\n", arg->arg_type);
+
 	switch (arg->arg_type) {
 	case meminfo_t:
 		INIT_WORK(&(handler->worker), t_meminfo);
@@ -435,22 +439,20 @@ void do_it(struct module_argument *arg)
 		INIT_WORK(&(handler->worker), t_list);
 		break;
 	case wait_t:
-		pr_info("%d\n", __LINE__);
 		once = 1;
 		INIT_WORK(&(handler->worker), t_wait);
 		break;
 	case wait_all_t:
-		pr_info("%d\n", __LINE__);
 		once = 0;
 		INIT_WORK(&(handler->worker), t_wait);
 		break;
 	default:
-		pr_info("default case\n");
+		pr_info("Default case is supposed to be unreachable\n");
 		break;
 	}
 	mutex_lock(&glob_mut);
 	schedule_work(&(handler->worker));
-	/* fg is always synchronous. otherwise.. */
+
 	if (handler->arg.async && (arg->arg_type != fg_t)
 	    &&(arg->arg_type != pid_list_t)) {
 		handler->finished = 0;
