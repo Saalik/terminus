@@ -285,7 +285,7 @@ static void t_wait(struct work_struct *work)
 			goto nope_pid;
 		put_pid(p);
 	}
-	pr_info("got some pids");
+	pr_info("got some pids w/ %d pids\n", wtr->wa_pids_size);
 	/* l'incrémentation est faite dans la boucle et non dans le corps */
 	for (killed = 0; killed < wtr->wa_pids_size;) {
 		pr_info("%d processes are gone so far\n", killed);
