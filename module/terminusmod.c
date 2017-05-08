@@ -237,7 +237,7 @@ static void t_wait(void *arg, int all)
 					wtr->wa_pids[i] = NULL;
 				}
 			} else {
-				if (all != 1)
+				if (all ==0)
 					break;
 			}
 		}
