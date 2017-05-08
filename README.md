@@ -9,7 +9,7 @@ Projet de l'UE PNL - 4l402 dont l'objectif est de réaliser un outils en ligne d
 Commandes a implémenter:
 
 list
-fg <id>
+fg <	id>
 kill <signal> <pid>
 wait <pid> [<pid>...]
 meminfo
@@ -24,12 +24,13 @@ L'application a deux parties:
 Extraire le dossier dans le même répertoire ou se situe les sources de Linux 3.4.2
 
 Dans le dossier extrait:
-make
+<pre><code>make</code></pre>
 
-Importer les fichiers dans la machine virtuelle:
-insmod terminusmod.ko
+Importer les fichiers dans la machine virtuelle puis taper:
+<pre><code>insmod terminusmod.ko</code></pre>
 
-Puis ./terminus pour lancer l'outil
+Puis pour lancer l'outil
+<pre><code>./terminus</code></pre>
 
 La liste des commandes disponible est visible grace a la commande help
 
