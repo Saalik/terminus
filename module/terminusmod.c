@@ -315,7 +315,7 @@ static void t_modinfo(struct work_struct *work)
 	copy_from_user(mod_name, handler->arg.modinfo_a.arg, T_BUF_STR * sizeof(char));
 
 	pr_info("module name %s\n", mod_name);
-	mod = find_module(handler->arg.modinfo_a.data.name);
+	mod = find_module(mod_name);
 	if (mod != NULL) {
 		scnprintf(handler->arg.modinfo_a.data.name, T_BUF_STR, "%s", mod->name);
 		scnprintf(handler->arg.modinfo_a.data.version, T_BUF_STR,
