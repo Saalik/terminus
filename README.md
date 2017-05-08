@@ -32,17 +32,17 @@ Il est possible de lancé les commandes de façon asynchrone en utilisant le car
 
 Commandes disponibles: 
 * list
-** Permet de lister les commandes en court d'execution
+* Permet de lister les commandes en court d'execution
 * fg *id*
-**Permet de récupérer les resultat des commandes lancées en asynchrone. Elle bloque jusqu'a que la commande donnée se termine
+*Permet de récupérer les resultat des commandes lancées en asynchrone. Elle bloque jusqu'a que la commande donnée se termine
 * kill *signal* *pid*
-**Permet d'envoyé le signal *signal* au pid *pid* 
+*Permet d'envoyé le signal *signal* au pid *pid* 
 * wait \<pid\> \[\<pid\>...\]
-**Cette commande se bloque jusqu'a que l'un des processus passés en paramètre se termine
+*Cette commande se bloque jusqu'a que l'un des processus passés en paramètre se termine
 * meminfo
-**Obtenir les informations concernant l'état de la mémoire
+*Obtenir les informations concernant l'état de la mémoire
 * modinfo \<name\>
-**Renvoie les informations du module
+*Renvoie les informations du module
 
 ## Traces d'execution
 
