@@ -38,31 +38,34 @@ struct waiter {
 
 struct handler_struct {
 	struct work_struct worker;
+	struct mutex mut_doing;
+	struct mutex mut_done;
 	struct list_head doing_async;
 	struct list_head done_async;
 	struct module_argument arg;
 	int sleep;
 };
 
+struct currently_doing {
+	struct list_head head;
+	struct mutex mut;
+};
+
+struct already_done {
+	struct list_head head;
+	struct mutex mut;
+};
+
+struct currently_doing doing;
+struct already_done done;
 
 static struct listing *listcmd;
 static int nbcmd;
 static int flags[10];
 static char* ret_async;
 
-/* utilisé pour les async */
-struct currently_doing {
-	struct mutex mut;
-	struct list_head head;
-};
-
-struct already_done {
-	struct mutex mut;
-	struct list_head head;
-};
-
-static struct currently_doing doing;
-static struct already_done done;
+LIST_HEAD(currently_doing);
+LIST_HEAD(already_done);
 
 static int t_open(struct inode *i, struct file *f)
 {
@@ -100,11 +103,11 @@ static int __init start(void)
 	int result = 0;
 	struct device *dev_return;
 
-	mutex_init(&doing.mut);
-	mutex_init(&done.mut);
-
 	INIT_LIST_HEAD(&doing.head);
 	INIT_LIST_HEAD(&done.head);
+
+	mutex_init(&doing.mut);
+	mutex_init(&done.mut);
 
 	result = alloc_chrdev_region(&dev_number, 0, 1, "terminus");
 
@@ -173,21 +176,21 @@ static void async_janitor(struct handler_struct *handler)
 {
 	if (handler->arg.async) {
 		pr_info("first mutex lock, handler is %d @ %p\n", handler->arg.arg_type, handler);
-		mutex_lock(&doing.mut);
+		mutex_lock(&handler->mut_doing);
 		pr_info("after first\n");
-		mutex_lock(&done.mut);
-		pr_info("deleting list, handler %p gotten from list\n", list_entry(&(doing.head), struct handler_struct, doing_async));
+		mutex_lock(&handler->mut_done);
+		pr_info("deleting list, handler %p gotten from list\n", list_last_entry(&(doing.head), struct handler_struct, doing_async));
 		list_del_init(&(handler->doing_async));
 		if (list_empty(&(handler->doing_async))) {
 			pr_info("doing_async for handler is empty\n");
 		}
 		pr_info("adding to done.\n");
-		list_add_tail(&(handler->done_async), &done.head);
+		list_add_tail(&(handler->done_async), &already_done);
 		if (!list_empty(&(handler->done_async)))
 			pr_info("done_async for handler is not empty\n");
-		pr_info("handler in list is %p\n", list_entry(&(done.head), struct handler_struct, done_async));
-		mutex_unlock(&done.mut);
-		mutex_unlock(&doing.mut);
+		pr_info("handler in list is %p\n", list_entry(&(already_done), struct handler_struct, done_async));
+		mutex_unlock(&handler->mut_done);
+		mutex_unlock(&handler->mut_doing);
 		pr_info("unlocked all\n");
 	}
 }
@@ -203,10 +206,10 @@ static void t_fg(struct work_struct *work)
 	pr_info("getting handler\n");
 	handler = container_of(work, struct handler_struct, worker);
 	pr_info("locking mutex\n");
-	mutex_lock(&done.mut);
-	if (!list_empty(&done.head)) {
+	mutex_lock(&handler->mut_done);
+	if (!list_empty(&already_done)) {
 		pr_info("list not empty\n");
-		handler_done = list_entry(&(done.head), struct handler_struct, done_async);
+		handler_done = list_entry(&already_done, struct handler_struct, done_async);
 		pr_info("got handler %d, sleep %d, copying now\n", handler_done->arg.arg_type, handler->sleep);
 		pr_info("handler @ %p\n", handler_done);
 		memcpy(handler, handler_done, sizeof(struct handler_struct));
@@ -216,7 +219,7 @@ static void t_fg(struct work_struct *work)
 		/*		kfree(handler_done); */
 	}
 	pr_info("unlocking mutex\n");
-	mutex_unlock(&done.mut);
+	mutex_unlock(&handler->mut_done);
 
 	handler->sleep = 1;
 	wake_up(&cond_wait_queue);
@@ -393,6 +396,9 @@ void do_it(struct module_argument *arg)
 	INIT_LIST_HEAD(&(handler->doing_async));
 	INIT_LIST_HEAD(&(handler->done_async));
 
+	mutex_init(&(handler->mut_done));
+	mutex_init(&(handler->mut_doing));
+
 	copy_from_user(&(handler->arg), arg, sizeof(struct module_argument));
 	switch (arg->arg_type) {
 	case meminfo_t:
@@ -411,16 +417,17 @@ void do_it(struct module_argument *arg)
 		pr_info("default case\n");
 		break;
 	}
-	mutex_lock(&doing.mut);
+	mutex_lock(&handler->mut_doing);
 	schedule_work(&(handler->worker));
 	/* fg is always synchronous. otherwise.. */
 	if (handler->arg.async && (arg->arg_type != fg_t)) {
-		pr_info("do_it: async. list is %d\n", list_empty(&(handler->doing_async)));
+		pr_info("do_it: async. list is %d, handler %p\n", list_empty(&(handler->doing_async)), handler);
 
-		list_add_tail(&(handler->doing_async), &(doing.head));
-		mutex_unlock(&doing.mut);
+		list_add_tail(&(handler->doing_async), &currently_doing);
+
 		/* handler will be freed in fg */
-		pr_info("do_it: after. list is %d, handler %p\n", list_empty(&(handler->doing_async)), list_entry(&doing.head, struct handler_struct, doing_async));
+		pr_info("do_it: after. list is %d, handler %p\n", list_empty(&(handler->doing_async)), list_entry(&currently_doing, struct handler_struct, doing_async));
+		mutex_unlock(&handler->mut_doing);
 		return;
 	}
 	else {
@@ -429,7 +436,7 @@ void do_it(struct module_argument *arg)
 		copy_to_user((void *) arg, (void *) &(handler->arg),
 			     sizeof(struct module_argument));
 		kfree(handler);
-		mutex_unlock(&doing.mut);
+		mutex_unlock(&handler->mut_doing);
 	}
 	return;
 }
