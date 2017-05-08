@@ -29,13 +29,12 @@ La liste des commandes disponible est visible grace a la commande:
 <pre><code>help</code></pre>
 
 Commandes disponibles: 
-<pre><code>* list
+* list
 * fg \<id\>
 * kill \<signal\> \<pid\>
 * wait \<pid\> \[\<pid\>...\]
 * meminfo
 * modinfo \<name\>
-</pre></code>
 ## Traces d'execution
 
 
