@@ -105,6 +105,10 @@ void modinfo(int fd, char* module_name, int async)
 	tmp_ptr = arg.modinfo_a.arg;
 
 	if (ioctl(fd, T_MODINFO, &arg) == 0) {
+		if (arg.async == 0) {
+			free(tmp_ptr);
+			return;
+		}
 		if (arg.modinfo_a.data.module_core == NULL) {
 			printf("Module %s pas trouvé.\n", module_name);
 			free(tmp_ptr);

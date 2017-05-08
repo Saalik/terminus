@@ -103,6 +103,9 @@ static int __init start(void)
 	mutex_init(&doing.mut);
 	mutex_init(&done.mut);
 
+	INIT_LIST_HEAD(&doing.head);
+	INIT_LIST_HEAD(&done.head);
+
 	result = alloc_chrdev_region(&dev_number, 0, 1, "terminus");
 
 	if (result < 0)
@@ -169,12 +172,17 @@ module_exit(end);
 static void async_janitor(struct handler_struct *handler)
 {
 	if (handler->arg.async) {
+		pr_info("first mutex lock\n");
 		mutex_lock(&doing.mut);
+		pr_info("after first\n");
 		mutex_lock(&done.mut);
-		list_del_init(&(handler->doing_async));
+		pr_info("deleting list\n");
+		list_del(&(handler->doing_async));
+		pr_info("adding to done\n");
 		list_add_tail(&(handler->done_async), &done.head);
 		mutex_unlock(&done.mut);
 		mutex_unlock(&doing.mut);
+		pr_info("unlocked all\n");
 	}
 }
 
@@ -357,7 +365,9 @@ static void t_modinfo(struct work_struct *work)
 	kfree(mod_name);
 	handler->sleep=1;
 
+	pr_info("janiting start\n");
 	async_janitor(handler);
+	pr_info("janiting end\n");
 
 	wake_up(&cond_wait_queue);
 }
@@ -367,6 +377,10 @@ void do_it(struct module_argument *arg)
 	struct handler_struct *handler;
 	handler = kzalloc(sizeof(struct handler_struct), GFP_KERNEL);
 	handler->sleep = 0;
+
+	INIT_LIST_HEAD(&(handler->doing_async));
+	INIT_LIST_HEAD(&(handler->done_async));
+
 	copy_from_user(&(handler->arg), arg, sizeof(struct module_argument));
 	switch (arg->arg_type) {
 	case meminfo_t:
@@ -389,6 +403,7 @@ void do_it(struct module_argument *arg)
 
 	/* fg is always synchronous. otherwise.. */
 	if (handler->arg.async && (arg->arg_type != fg_t)) {
+		pr_info("do_it: async\n");
 		mutex_lock(&doing.mut);
 		list_add_tail(&(handler->doing_async), &doing.head);
 		mutex_unlock(&doing.mut);
