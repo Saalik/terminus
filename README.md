@@ -32,27 +32,28 @@ Il est possible de lancer les commandes de manière asynchrone en utilisant le c
 
 
 Commandes disponibles: 
-*  _list_
+
+<pre><code>_list_</code></pre>
 
 Permet de lister les commandes en court d'execution
 
-* _fg id_
+<pre><code>_fg id_</code></pre>
 
 Permet de récupérer les resultat des commandes lancées en asynchrone. Elle bloque jusqu'a que la commande donnée se termine
 
-* _kill signal pid_
+<pre><code>_kill signal pid_</code></pre>
 
 Permet d'envoyé le signal *signal* au pid *pid* 
 
-* _wait \<pid\> \[\<pid\>...\]_
+<pre><code>_wait \<pid\> \[\<pid\>...\]_</code></pre>
 
 Cette commande se bloque jusqu'a que l'un des processus passés en paramètre se termine
 
-* _meminfo_
+<pre><code>_meminfo_</code></pre>
 
 Obtenir les informations concernant l'état de la mémoire
 
-* _modinfo \<name\>_
+<pre><code>_modinfo \<name\>_</code></pre>
 
 Renvoie les informations du module
 
