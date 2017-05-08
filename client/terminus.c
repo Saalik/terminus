@@ -57,8 +57,9 @@ void modinfo(int fd, char* module_name)
 {
 	union arg_infomod info_module;
 	char *tmp_ptr = NULL;
-	info_module.arg = (char *) malloc(T_BUF_STR * sizeof(char));
 
+	memset(&info_module, 0, sizeof(union arg_infomod));
+	info_module.arg = (char *) malloc(T_BUF_STR * sizeof(char));
 
 	memset(info_module.arg, 0, T_BUF_STR);
 
