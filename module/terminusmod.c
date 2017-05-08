@@ -329,10 +329,12 @@ static void t_wait(struct work_struct *work)
 		}
 	}
  nope_pid:
+	pr_info("woh message avant free woh\n");
 	kfree(wtr->wa_pids);
 	kfree(wtr);
 	kfree(tab);
 	kfree(rets);
+	pr_info("aprs free\n");
 	handler->sleep = 1;
 	async_janitor(handler);
 	wake_up(&cond_wait_queue);
