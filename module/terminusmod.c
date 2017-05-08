@@ -51,7 +51,9 @@ static int nbcmd;
 static int flags[10];
 static char* ret_async;
 static int task_id = 0;
+
 LIST_HEAD(tasks);
+
 
 static int t_open(struct inode *i, struct file *f)
 {
@@ -166,7 +168,9 @@ static void t_list(struct work_struct *work)
 	struct handler_struct *handler;
 	struct list_head *head;
 
+	pr_info("inside t_list\n");
 	list_for_each(head,&tasks) {
+
 		handler = list_entry(head, struct handler_struct, list);
 		pr_info("task %d\n", handler->id);
 	}
