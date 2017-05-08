@@ -214,10 +214,6 @@ static void t_fg(struct work_struct *work)
 							   != 0);
 					}
 				}
-			} else {
-				pr_info
-				    ("we should not be here, handler w/id %d\n",
-				     handler_done->id);
 			}
 		}
 	}
