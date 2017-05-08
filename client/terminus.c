@@ -145,17 +145,17 @@ void t_wait(int fd, int wait_all)
 
 	for (i=0; i < list.size; i++)
 		list.first[i] = atoi(user_strings[i+1]);
-	/*	if (wait_all) {
+		if (wait_all) {
 		if (ioctl(fd, T_WAIT_ALL, &list) != 0) {
 			perror("ioctl");
 			return;
 		}
-		} else {*/
-		if (ioctl(fd, T_WAIT, &list) != 0) {
-			perror("ioctl");
-			return;
+		} else {
+			if (ioctl(fd, T_WAIT, &list) != 0) {
+				perror("ioctl");
+				return;
+			}
 		}
-		/*}*/
 }
 
 int main(int argc, char ** argv)

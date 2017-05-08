@@ -13,7 +13,7 @@
 #define T_WAIT _IOR(TERMINUS_MAGIC, 4, int)
 #define T_MODINFO _IOR(TERMINUS_MAGIC, 5, int)
 #define T_MEMINFO _IOR(TERMINUS_MAGIC, 6, int)
-/* #define T_A_KILL _IOR(TERMINUS_MAGIC, 7, int) */
+#define T_A_KILL _IOR(TERMINUS_MAGIC, 7, int)
 /* #define T_WAIT_ALL _IOR(TERMINUS_MAGIC, 8, int) */
 /* #define T_A_MEMINFO _IOR(TERMINUS_MAGIC, 9, int) */
 

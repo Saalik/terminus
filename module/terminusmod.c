@@ -196,7 +196,7 @@ static void t_kill(struct work_struct *work)
 	wake_up(&cond_wait_queue);
 }
 
-static void t_wait(void *arg)
+static void t_wait(void *arg, int once)
 {
 	struct waiter *wtr;
 	int i, killed;
@@ -243,6 +243,9 @@ static void t_wait(void *arg)
 		}
 
 		if (killed == wtr->wa_pids_size) break;
+
+		/* Attend-on la fin d'un seul processus? */
+		if (killed && once) break;
 
 		if ((queue_delayed_work
 		     (station, &(wtr->wa_checker), DELAY)) == 0) {
@@ -350,7 +353,10 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 		kfree(wk);
 		break;
 	case T_WAIT:
-		t_wait((void *)arg);
+		t_wait((void *)arg, 0);
+		break;
+	case T_WAIT_ALL:
+		t_wait((void *)arg, 1);
 		break;
 	case T_MEMINFO:
 		mew = kzalloc(sizeof(struct meminfo_waiter), GFP_KERNEL);
