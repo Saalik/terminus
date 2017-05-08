@@ -74,10 +74,10 @@ void modinfo(int fd, char* module_name)
 		return;
 	}
 	strcpy(arg.modinfo_a.arg, module_name);
-
-	for (tmp_ptr = arg.modinfo_a.arg; tmp_ptr; tmp_ptr++)
+	printf("before newline\n");
+	for (tmp_ptr = arg.modinfo_a.arg; tmp_ptr != NULL; tmp_ptr++)
 		if (*tmp_ptr == '\n') *tmp_ptr = '\0';
-
+	printf("after newline\n");
 	tmp_ptr = arg.modinfo_a.arg;
 
 	if (ioctl(fd, T_MODINFO, &arg) == 0) {
