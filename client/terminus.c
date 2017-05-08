@@ -38,7 +38,7 @@ void list_commandes()
 size_t lazy_cmp(char *s1, char *s2) {
 	return strncmp(s1, s2, strlen(s2));
 }
-/*
+
 void meminfo(int fd)
 {
 	struct my_infos infos;
@@ -52,7 +52,7 @@ void meminfo(int fd)
 		printf("Memory unit\t%lu bytes\n", infos.mem_unit);
 	} else perror("ioctl");
 }
-*/
+
 void modinfo(int fd, char* module_name)
 {
 	union arg_infomod info_module;
@@ -186,11 +186,11 @@ int main(int argc, char ** argv)
 			list_commandes();
 			goto cleanup;
 		}
-		/*
+
 		if (lazy_cmp(user_strings[0], "meminfo") == 0) {
 			meminfo(fd);
 			goto cleanup;
-			}*/
+		}
 
 		if (lazy_cmp(user_strings[0], "modinfo") == 0) {
 			modinfo(fd, user_strings[1]);
