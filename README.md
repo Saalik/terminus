@@ -34,15 +34,15 @@ Commandes disponibles:
 * _list_
 * Permet de lister les commandes en court d'execution
 * _fg id_
-*Permet de récupérer les resultat des commandes lancées en asynchrone. Elle bloque jusqu'a que la commande donnée se termine
+* Permet de récupérer les resultat des commandes lancées en asynchrone. Elle bloque jusqu'a que la commande donnée se termine
 * _kill signal pid_
-*Permet d'envoyé le signal *signal* au pid *pid* 
+* Permet d'envoyé le signal *signal* au pid *pid* 
 * _wait \<pid\> \[\<pid\>...\]_
-*Cette commande se bloque jusqu'a que l'un des processus passés en paramètre se termine
+* Cette commande se bloque jusqu'a que l'un des processus passés en paramètre se termine
 * _meminfo_
-*Obtenir les informations concernant l'état de la mémoire
+* Obtenir les informations concernant l'état de la mémoire
 * _modinfo \<name\>_
-*Renvoie les informations du module
+* Renvoie les informations du module
 
 ## Traces d'execution
 
