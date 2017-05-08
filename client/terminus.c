@@ -207,11 +207,13 @@ int main(int argc, char ** argv)
 			goto cleanup;
 		}
 		if (lazy_cmp(user_strings[0], "wait") == 0) {
+			printf("sending wait\n");
 			t_wait(fd, 0);
 			goto cleanup;
 		}
 
 		if (lazy_cmp(user_strings[0], "waitall") == 0) {
+			printf("sending waitall\n");
 			t_wait(fd, 1);
 			goto cleanup;
 		}

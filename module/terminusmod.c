@@ -204,6 +204,11 @@ static void t_wait(void *arg, int once)
 	int *tab;
 	struct pid *p;
 
+	if (once)
+		pr_info("got wait_once\n");
+	else
+		pr_info("got wait_all\n");
+
 	wtr = kmalloc(sizeof(struct waiter), GFP_KERNEL);
 	INIT_DELAYED_WORK(&(wtr->wa_checker), t_wait_slow);
 	copy_from_user(&pidlist, arg, sizeof(struct pid_list));
@@ -242,10 +247,16 @@ static void t_wait(void *arg, int once)
 			}
 		}
 
-		if (killed == wtr->wa_pids_size) break;
+		if (killed == wtr->wa_pids_size) {
+			pr_info("exiting because %d\n", once);
+			break;
+		}
 
 		/* Attend-on la fin d'un seul processus? */
-		if (killed && once) break;
+		if ((killed > 0) && (once == 1)) {
+			pr_info("exiting because %d\n", once);
+			break;
+		}
 
 		if ((queue_delayed_work
 		     (station, &(wtr->wa_checker), DELAY)) == 0) {
@@ -353,10 +364,12 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 		kfree(wk);
 		break;
 	case T_WAIT:
-		t_wait((void *)arg, 0);
+		pr_info("sending wait_once\n");
+		t_wait((void *)arg, 1);
 		break;
 	case T_WAIT_ALL:
-		t_wait((void *)arg, 1);
+		pr_info("sending wait_all\n");
+		t_wait((void *)arg, 0);
 		break;
 	case T_MEMINFO:
 		mew = kzalloc(sizeof(struct meminfo_waiter), GFP_KERNEL);
