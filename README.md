@@ -39,11 +39,11 @@ Permet de lister les commandes en court d'execution
 
 <pre><code>fg id</code></pre>
 
-Permet de récupérer les resultat des commandes lancées en asynchrone. Elle bloque jusqu'a que la commande donnée se termine
+Permet de récupérer les resultat des commandes lancées en asynchrone. Bloque jusqu'a que la commande donnée se termine
 
 <pre><code>kill signal pid</code></pre>
 
-Permet d'envoyé le signal *signal* au pid *pid* 
+Permet d'envoyer le signal *signal* au pid *pid*
 
 <pre><code>wait \<pid\> \[\<pid\>...\]</code></pre>
 
@@ -51,7 +51,7 @@ Cette commande se bloque jusqu'a que l'un des processus passés en paramètre se
 
 <pre><code>meminfo</code></pre>
 
-Obtenir les informations concernant l'état de la mémoire
+Obtenir des informations concernant l'état de la mémoire
 
 <pre><code>modinfo \<name\></code></pre>
 
