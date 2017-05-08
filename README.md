@@ -51,7 +51,7 @@ Cette commande se bloque jusqu'a que l'un des processus passés en paramètre se
 
 <pre><code>waitall pid [pid...]</code></pre>
 
-Cette commande se bloque jusqu'a que **tous** les processus passés en paramètre se termine
+**Commande supplementaire** Cette commande se bloque jusqu'a que **tous** les processus passés en paramètre se termine
 
 <pre><code>meminfo</code></pre>
 
