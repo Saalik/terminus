@@ -196,7 +196,7 @@ static void t_kill(struct work_struct *work)
 	wake_up(&cond_wait_queue);
 }
 
-static void t_wait(void *arg, int all)
+static void t_wait(void *arg)
 {
 	struct waiter *wtr;
 	int i, left = 1;
@@ -238,12 +238,11 @@ static void t_wait(void *arg, int all)
 					put_task_struct(wtr->wa_pids[i]);
 					wtr->wa_pids[i] = NULL;
 				}
-			} else {
-				if (all == 0)
-					break;
-			}
+			} else
+				break;
+
 		}
-		if (left) {
+		if (left==wtr->wa_pids_size) {
 			if ((queue_delayed_work
 			     (station, &(wtr->wa_checker), DELAY)) == 0)
 				/*
@@ -255,12 +254,9 @@ static void t_wait(void *arg, int all)
 			pr_info("Avant wait interrupt");
 			wait_event_interruptible(cond_wait_queue,
 						 wtr->wa_fin != 0);
-			pr_info("près wait interrupt");
-		} else
-			break;
 
+		}
 	}
-
 	kfree(wtr->wa_pids);
 	kfree(wtr);
 	kfree(tab);
@@ -355,10 +351,7 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 		kfree(wk);
 		break;
 	case T_WAIT:
-		t_wait((void *)arg, 0);
-		break;
-	case T_WAIT_ALL:
-		t_wait((void *)arg, 99);
+		t_wait((void *)arg);
 		break;
 	case T_MEMINFO:
 		mew = kzalloc(sizeof(struct meminfo_waiter), GFP_KERNEL);
