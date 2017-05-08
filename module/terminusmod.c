@@ -344,7 +344,7 @@ void do_it(struct module_argument *arg)
 		INIT_WORK(&(handler->worker), t_modinfo);
 		break;
 	case kill_t:
-		INIT_WORK(&(handler->worker), t_modinfo);
+		INIT_WORK(&(handler->worker), t_kill);
 		break;
 	default:
 		pr_info("default case\n");
@@ -375,16 +375,8 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 	case T_FG:
 		break;
 	case T_KILL:
-		wk = kmalloc(sizeof(struct workkiller), GFP_KERNEL);
-		wk->sleep = 0;
-		copy_from_user(&(wk->signal), (void *)arg,
-			       sizeof(struct signal_s));
-		INIT_WORK(&(wk->wk_ws), t_kill);
-		schedule_work(&(wk->wk_ws));
-		wait_event(cond_wait_queue, wk->sleep!=0);
-		copy_to_user((void *)arg, (void*)&(wk->signal),
-		 	     sizeof(struct signal_s));
-		kfree(wk);
+		pr_info("sending kill\n");
+		do_it((struct module_argument *) arg);
 		break;
 	case T_WAIT:
 		pr_info("sending wait_once\n");

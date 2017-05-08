@@ -121,10 +121,9 @@ void kill(int fd, char* pid, char* sig, int async)
 
 	arg.kill_a.pid = atoi(pid);
 	arg.kill_a.sig = atoi(sig);
-	if (!async) {
-		if (ioctl(fd, T_KILL, &arg) != 0)
-			perror("ioctl");
-	}
+	if (ioctl(fd, T_KILL, &arg) != 0)
+		perror("ioctl");
+
 }
 
 void t_wait(int fd, int wait_all)
