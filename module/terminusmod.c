@@ -27,16 +27,6 @@ static dev_t dev_number;
 static struct cdev c_dev;
 static struct class *class;
 
-/* struct listfg { */
-/*   union { */
-
-struct workkiller {
-	struct work_struct wk_ws;
-	struct signal_s signal;
-	int async;
-	int sleep;
-};
-
 struct waiter {
 	struct delayed_work wa_checker;
 	int wa_fin;
@@ -358,11 +348,6 @@ void do_it(struct module_argument *arg)
 long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 {
 	/* Reborn of the project */
-	/* Used for kill */
-	struct workkiller *wk;
-	/* Used for wait */
-	/* struct waiter *wtr; */
-	/* Used for modinfo */
 
 	switch(cmd) {
 
