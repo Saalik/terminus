@@ -38,7 +38,7 @@ struct infomod {
 	char args[T_BUF_STR];
 };
 
-  
+
 union arg_infomod {
 	struct infomod data;
 	char *arg;
@@ -49,8 +49,8 @@ struct listing {
 	char** args;
 	int async;
 	char *ret;
-}
-	
+};
+
 
 
 
