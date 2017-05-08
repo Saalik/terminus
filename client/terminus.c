@@ -54,6 +54,15 @@ void show_results(struct module_argument arg)
 		}
 		printf("\n");
 		break;
+	case meminfo_t:
+		printf("TotalRam\t%llu pages\n", arg.meminfo_a.totalram);
+		printf("SharedRam\t%llu pages\n", arg.meminfo_a.sharedram);
+		printf("FreeRam\t\t%llu pages\n", arg.meminfo_a.freeram);
+		printf("BufferRam\t%llu pages\n", arg.meminfo_a.bufferram);
+		printf("TotalHigh\t%llu pages\n", arg.meminfo_a.totalhigh);
+		printf("FreeHigh\t%llu pages\n", arg.meminfo_a.freehigh);
+		printf("Memory unit\t%lu bytes\n", arg.meminfo_a.mem_unit);
+		break;
 	default:
 		break;
 	}
@@ -67,13 +76,8 @@ void meminfo(int fd, int async)
 	arg.async = async;
 
 	if (ioctl(fd, T_MEMINFO, &arg) == 0) {
-		printf("TotalRam\t%llu pages\n", arg.meminfo_a.totalram);
-		printf("SharedRam\t%llu pages\n", arg.meminfo_a.sharedram);
-		printf("FreeRam\t\t%llu pages\n", arg.meminfo_a.freeram);
-		printf("BufferRam\t%llu pages\n", arg.meminfo_a.bufferram);
-		printf("TotalHigh\t%llu pages\n", arg.meminfo_a.totalhigh);
-		printf("FreeHigh\t%llu pages\n", arg.meminfo_a.freehigh);
-		printf("Memory unit\t%lu bytes\n", arg.meminfo_a.mem_unit);
+		if (arg.async) return;
+		else show_results(arg);
 	} else perror("ioctl");
 }
 
@@ -108,9 +112,7 @@ void modinfo(int fd, char* module_name, int async)
 	if (ioctl(fd, T_MODINFO, &arg) == 0) {
 
 		if (arg.async == 1) {
-			printf("got modinfo stuff async\n");
 			free(tmp_ptr);
-			printf("after free\n");
 			return;
 		}
 		if (arg.modinfo_a.data.module_core == NULL) {
@@ -218,7 +220,7 @@ void t_list(int fd)
 		perror("ioctl");
 		return;
 	} else {
-		printf("%s\n", arg.list_a.out);
+		printf("%s", arg.list_a.out);
 	}
 
 	return;

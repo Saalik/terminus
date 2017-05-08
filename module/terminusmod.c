@@ -172,6 +172,7 @@ static void t_list(struct work_struct *work)
 	struct listing *list_args;
 	char* out = kzalloc(sizeof(char) * T_BUF_SIZE, GFP_KERNEL);
 	char *aux = out;
+	int inverse_sum = T_BUF_SIZE;
 	pr_info("just about inside t_list\n");
 	mutex_lock(&glob_mut);
 	pr_info("inside t_list\n");
@@ -182,20 +183,27 @@ static void t_list(struct work_struct *work)
 		pr_info("switching off\n");
 		switch (handler->arg.arg_type) {
 		case modinfo_t:
-			scnprintf(aux, " %d MODINFO\n", handler->id);
-
-			aux += strlen(aux)-1;
+			scnprintf(aux, inverse_sum, " %d MODINFO\n", handler->id);
+			break;
+		case meminfo_t:
+			scnprintf(aux, inverse_sum, " %d MEMINFO\n", handler->id);
+			break;
+		case kill_t:
+			scnprintf(aux, inverse_sum, " %d KILL\n", handler->id);
 			break;
 		default:
 			break;
 		}
+		aux += strlen(aux)-1;
+		inverse_sum -= strlen(aux)-1;
+		pr_info("got modinfo + strlen %d\n", strlen(aux));
 		pr_info("task %d\n", handler->id);
 	}
 	mutex_unlock(&glob_mut);
 
 
 	handler = container_of(work, struct handler_struct, worker);
-
+	pr_info("going to send THIS\n%s\n", out);
 
 	copy_to_user(handler->arg.list_a.out, out, T_BUF_SIZE * sizeof(char));
 	kfree(out);
@@ -371,6 +379,7 @@ static void t_meminfo(struct work_struct *work)
 	handler = container_of(work, struct handler_struct, worker);
 	si_meminfo((struct sysinfo *) &(handler->arg.meminfo_a));
 	handler->sleep = 1;
+	async_janitor(handler);
 	wake_up(&cond_wait_queue);
 }
 
