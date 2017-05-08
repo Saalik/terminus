@@ -240,7 +240,7 @@ static void t_wait(void *arg, int all)
 					wtr->wa_pids[i] = NULL;
 				}
 			} else {
-				if (all != 1)
+				if (all!=1)
 					break;
 			}
 		}
@@ -331,7 +331,7 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 	/* Used for kill */
 	struct workkiller *wk;
 	/* Used for wait */
-	struct waiter *wtr;
+	/* struct waiter *wtr; */
 	/* Used for meminfo */
 	struct meminfo_waiter *mew;
 	/* Used for modinfo */
