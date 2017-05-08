@@ -333,13 +333,25 @@ static void t_modinfo(struct work_struct *work)
 
 void do_it(struct module_argument *arg)
 {
+	struct handler_struct *handler;
+
+	handler = kzalloc(sizeof(struct handler_struct), GFP_KERNEL);
+	handler->sleep = 0;
+	copy_from_user(&(handler->arg), arg, sizeof(struct module_argument));
+
 	switch (arg->arg_type) {
 	case meminfo_t:
-
+		INIT_WORK(&(handler->worker), t_meminfo);
+		schedule_work(&(handler->worker));
 		break;
 	default:
 		break;
 	}
+
+	wait_event(cond_wait_queue, handler->sleep != 0);
+	copy_to_user((void *) arg, (void *) &(handler->arg),
+		     sizeof(struct module_argument));
+	kfree(handler);
 	return;
 }
 
@@ -382,14 +394,7 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 		t_wait((void *)arg, 0);
 		break;
 	case T_MEMINFO:
-		handler = kzalloc(sizeof(struct handler_struct), GFP_KERNEL);
-		handler->sleep = 0;
-		INIT_WORK(&(handler->worker), t_meminfo);
-		schedule_work(&(handler->worker));
-		wait_event(cond_wait_queue, handler->sleep!=0);
-		copy_to_user((void *)arg, (void*)&(handler->arg),
-		 	     sizeof(struct my_infos));
-		kfree(handler);
+		do_it((struct module_argument *) arg);
 		break;
 	case T_MODINFO:
 		mow = kzalloc(sizeof(struct modinfo_waiter), GFP_KERNEL);
