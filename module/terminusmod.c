@@ -225,10 +225,9 @@ static void t_wait(void *arg, int all)
 			goto nope_pid;
 		put_pid(p);
 	}
-
+	pr_info("got some pids");
 	while (1) {
 		left = 0;
-		/* pr_info("je suis dans le while(left)"); */
 		for (i = 0; i < wtr->wa_pids_size; i++) {
 			if (wtr->wa_pids[i] != NULL) {
 				left++;
@@ -237,7 +236,7 @@ static void t_wait(void *arg, int all)
 					wtr->wa_pids[i] = NULL;
 				}
 			} else {
-				if (all!=1)
+				if (all == 0)
 					break;
 			}
 		}
