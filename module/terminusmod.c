@@ -196,11 +196,6 @@ static void t_wait(void *arg, int once)
 	int *tab;
 	struct pid *p;
 
-	if (once)
-		pr_info("got wait_once\n");
-	else
-		pr_info("got wait_all\n");
-
 	wtr = kmalloc(sizeof(struct waiter), GFP_KERNEL);
 	INIT_DELAYED_WORK(&(wtr->wa_checker), t_wait_slow);
 	copy_from_user(&pidlist, arg, sizeof(struct pid_list));
@@ -239,17 +234,18 @@ static void t_wait(void *arg, int once)
 			}
 		}
 
+		/* A-t-on attendu la fin de tous les processus? */
 		if (killed == wtr->wa_pids_size) {
-			pr_info("exiting because %d\n", once);
 			break;
 		}
 
 		/* Attend-on la fin d'un seul processus? */
 		if ((killed > 0) && (once == 1)) {
-			pr_info("exiting because %d\n", once);
 			break;
 		}
 
+		/* Ceci doit forcément être éxecuté après les break.
+		   Sinon on break the world */
 		if ((queue_delayed_work
 		     (station, &(wtr->wa_checker), DELAY)) == 0) {
 			/*
@@ -374,18 +370,13 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 		break;
 	case T_FG:
 		break;
-	case T_KILL:
-		pr_info("sending kill\n");
-		do_it((struct module_argument *) arg);
-		break;
 	case T_WAIT:
-		pr_info("sending wait_once\n");
 		t_wait((void *)arg, 1);
 		break;
 	case T_WAIT_ALL:
-		pr_info("sending wait_all\n");
 		t_wait((void *)arg, 0);
 		break;
+	case T_KILL:
 	case T_MEMINFO:
 	case T_MODINFO:
 		do_it((struct module_argument *) arg);
