@@ -92,6 +92,14 @@ Core	0xffffffffa000f000
 ```
 ## Ce qui a été fait
 
-Toutes les commandes ont été implémenter
 
-## What's left:
+
+## Précisions
+
+Notre module passe le checkpatch.pl sans erreurs:
+```
+../../linux-4.2.3/scripts/checkpatch.pl -f terminusmod.c
+total: 0 errors, 0 warnings, 487 lines checked
+
+terminusmod.c has no obvious style problems and is ready for submission.
+```
