@@ -47,7 +47,7 @@ static struct listing *listcmd;
 static int nbcmd;
 static int flags[10];
 static char* ret_async;
-
+static int once;
 
 
 static int t_open(struct inode *i, struct file *f)
@@ -178,23 +178,28 @@ static void t_kill(struct work_struct *work)
 	wake_up(&cond_wait_queue);
 }
 
-static void t_wait(void *arg, int once)
+static void t_wait(struct work_struct *work)
 {
+	struct handler_struct *handler;
 	struct waiter *wtr;
 	int i, killed;
 	struct pid_list pidlist;
 	int *tab;
 	struct pid *p;
-
+	handler = container_of(work, struct handler_struct, worker);
 	wtr = kmalloc(sizeof(struct waiter), GFP_KERNEL);
 	INIT_DELAYED_WORK(&(wtr->wa_checker), t_wait_slow);
-	copy_from_user(&pidlist, arg, sizeof(struct pid_list));
-	/* Récupération de la taille de l'array */
+
+	pidlist = handler->arg.pid_list_a;
 	tab = kmalloc_array(pidlist.size, sizeof(int), GFP_KERNEL);
+	tab = handler->arg.pid_list_a.first;
+	/* copy_from_user(&pidlist, arg, sizeof(struct pid_list)); */
+	/* Récupération de la taille de l'array */
+	//tab = kmalloc_array(pidlist.size, sizeof(int), GFP_KERNEL);
 	if (tab == NULL)
 		return;
 	/* récup le tab en lui même */
-	copy_from_user(tab, pidlist.first, sizeof(int) * pidlist.size);
+	/* copy_from_user(tab, pidlist.first, sizeof(int) * pidlist.size); */
 
 	wtr->wa_pids =
 	    kzalloc(sizeof(struct task_struct *) * pidlist.size, GFP_KERNEL);
@@ -332,6 +337,14 @@ void do_it(struct module_argument *arg)
 	case kill_t:
 		INIT_WORK(&(handler->worker), t_kill);
 		break;
+	case wait_t:
+		once =1;
+		INIT_WORK(&(handler->worker), t_wait);
+		break;
+	case wait_all_t:
+		once=0;
+		INIT_WORK(&(handler->worker), t_wait);
+		break;
 	default:
 		pr_info("default case\n");
 		break;
@@ -356,11 +369,7 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 	case T_FG:
 		break;
 	case T_WAIT:
-		t_wait((void *)arg, 1);
-		break;
 	case T_WAIT_ALL:
-		t_wait((void *)arg, 0);
-		break;
 	case T_KILL:
 	case T_MEMINFO:
 	case T_MODINFO:
