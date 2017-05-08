@@ -1,17 +1,45 @@
-# terminus
+# terminus - Projet PNL
 
-![](https://scontent-cdg2-1.xx.fbcdn.net/v/t34.0-12/17792497_10212138079067723_979427820_n.gif?oh=4c31e079223250574c30f548bbed2807&oe=590FE098)
+Oskar Viljasaar [3000989] - Saalik Hatia [3000442]
+
+## Introduction
+
+Projet de l'UE PNL - 4l402 dont l'objectif est de réaliser un outils en ligne de commande.
+
+Commandes a implémenter:
+
+list
+fg <id>
+kill <signal> <pid>
+wait <pid> [<pid>...]
+meminfo
+modinfo <name>
+
+L'application a deux parties:
+- Client
+- Module
+
+## Mode d'emploi
+
+Extraire le dossier dans le même répertoire ou se situe les sources de Linux 3.4.2
+
+Dans le dossier extrait:
+make
+
+Importer les fichiers dans la machine virtuelle:
+insmod terminusmod.ko
+
+Puis ./terminus pour lancer l'outil
+
+La liste des commandes disponible est visible grace a la commande help
+
+## Traces d'execution
+
+
+## Ce qui a été fait
+
+Toutes les commandes ont été implémenter 
 
 ## What's left:
 
-Implement all the async functions
 
-Right now all the functions have their own call all the async calls needs to be called with the "&" at the end
-
-The kill signal has been implemented to use any signal possible create a simple kill then change the main kill into sigsend
-
-Check the IOCTL if they work properly
-
-## Might be good to do
-
-Replace all the kernel allocation with slabs
