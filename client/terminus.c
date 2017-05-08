@@ -206,15 +206,16 @@ int main(int argc, char ** argv)
 			kill(fd, user_strings[1], user_strings[2], 1);
 			goto cleanup;
 		}
-		if (lazy_cmp(user_strings[0], "wait") == 0) {
-			printf("sending wait\n");
-			t_wait(fd, 0);
-			goto cleanup;
-		}
 
 		if (lazy_cmp(user_strings[0], "waitall") == 0) {
 			printf("sending waitall\n");
 			t_wait(fd, 1);
+			goto cleanup;
+		}
+
+		if (lazy_cmp(user_strings[0], "wait") == 0) {
+			printf("sending wait\n");
+			t_wait(fd, 0);
 			goto cleanup;
 		}
 
