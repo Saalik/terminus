@@ -359,7 +359,7 @@ static void t_modinfo(struct work_struct *work)
 
 	pr_info("janiting start\n");
 	async_janitor(handler);
-	pr_info("janiting end\n");
+	pr_info(" end\n");
 
 	wake_up(&cond_wait_queue);
 }

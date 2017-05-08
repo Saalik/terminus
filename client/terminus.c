@@ -196,6 +196,21 @@ void t_fg(int fd)
 	printf("t_fg end\n");
 }
 
+void t_list(int fd)
+{
+	struct module_argument arg;
+	arg.arg_type = pid_list_t;
+	arg.async = 0;
+
+
+	printf("sending list\n");
+	if (ioctl(fd, T_LIST, &arg) != 0)
+		perror("ioctl");
+
+	return;
+}
+
+
 int main(int argc, char ** argv)
 {
 	int fd = 0;
@@ -259,8 +274,7 @@ int main(int argc, char ** argv)
 		}
 
 		if (lazy_cmp(user_strings[0], "list") == 0) {
-			printf("sending list\n");
-			t_fg(fd);
+			t_list(fd);
 			goto cleanup;
 		}
 
