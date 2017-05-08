@@ -60,7 +60,7 @@ Renvoie les informations du module
 
 ## Traces d'execution
 
-<code>
+<pre><code>
 root@vm-nmv client]# ./terminus
 > modinfo &
 > modinfo &
@@ -115,7 +115,7 @@ Version
 Core	(nil)
 0 arguments
 >
-</code>
+</code></pre>
 
 ## Ce qui a été fait
 
