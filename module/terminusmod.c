@@ -152,7 +152,6 @@ fail:
 
 static void __exit end(void)
 {
-	int i;
 	destroy_workqueue(station);
 	pr_alert("Terminus");
 	device_destroy(class, dev_number);
@@ -177,21 +176,21 @@ static void t_fg(struct work_struct *work)
 
 static void t_kill(struct work_struct *work)
 {
-
-	struct signal_s s;
+	struct workkiller *wk;
 	struct pid *pid_target;
 	
-	copy_from_user(&s, arg, sizeof(struct signal_s));
-	pid_target = find_get_pid(s.pid);
+	wk= container_of(work, struct workkiller, wk_ws);
+	pid_target = find_get_pid(wk->signal.pid);
 	
 	/* Si on a bien trouvé un processus correspondant. */
 	if (pid_target){
-		s.state = 1;
-		kill_pid(pid_target, s.sig, 1);
+		wk->signal.state = 1;
+		kill_pid(pid_target, wk->signal.sig, 1);
 	}else{
-		s.state = 0;
+		wk->signal.state = 0;
 	}
-
+	sleep = 1;
+	wake_up(&cond_wait_queue);
 }
 
 static void t_wait(struct work_struct *work)
@@ -258,7 +257,16 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 	case T_FG:
 		break;
 	case T_KILL:
-		
+		sleep = 0;
+		wk = kmalloc(sizeof(struct workkiller), GFP_KERNEL);
+		copy_from_user(&(wk->signal), (void *)arg,
+			       sizeof(struct signal_s));
+		INIT_WORK(&(wk->wk_ws), t_kill);
+		schedule_work(&(wk->wk_ws));
+		wait_event(cond_wait_queue, sleep!=0);
+		copy_to_user((void *)arg, (void*)&(wk->signal),
+		 	     sizeof(struct signal_s));
+		kfree(wk);
 		break;
 	case T_WAIT:
 		
@@ -277,7 +285,7 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 	case T_MODINFO:
 		sleep = 0;
 		mow = kzalloc(sizeof(struct modinfo_waiter), GFP_KERNEL);
-		copy_from_user(&mow->arg, arg, sizeof(char) * T_BUF_STR);
+		copy_from_user(&mow->arg, (void *) arg, sizeof(char) * T_BUF_STR);
 		mow->async=0;
 		INIT_WORK(&(mow->ws), t_modinfo);
 		schedule_work(&(mow->ws));

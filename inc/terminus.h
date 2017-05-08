@@ -49,7 +49,7 @@ struct listing {
 	char** args;
 	int async;
 	char *ret;
-}
+};
 	
 
 
@@ -58,7 +58,7 @@ struct listing {
 
 
 
-/* struct my_infos { */
+ struct my_infos { 
 /* 	long long uptime;		/\* Seconds since boot *\/ */
 /* 	unsigned long long loads[3];	/\* 1, 5, and 15 minute load averages *\/ */
 /* 	unsigned long long totalram;	/\* Total usable main memory size *\/ */
@@ -72,4 +72,4 @@ struct listing {
 /* 	unsigned long long totalhigh;	/\* Total high memory size *\/ */
 /* 	unsigned long long freehigh;	/\* Available high memory size *\/ */
 /* 	unsigned long mem_unit;	        /\* Memory unit size in bytes *\/ */
-/* }; */
+ }; 
