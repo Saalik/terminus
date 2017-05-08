@@ -36,11 +36,11 @@ struct signal_s {
 
 /* Détails d'un module. */
 struct infomod {
-	char  name[T_BUF_STR];    /* Nom du module */
-	char  version[T_BUF_STR]; /* Version */
-	void  *module_core;       /* Adresse de chargement */
-	unsigned int num_kp;      /* Nombre d'arguments */
-	char args[T_BUF_STR];     /* Arguments */
+	char name[T_BUF_STR];	/* Nom du module */
+	char version[T_BUF_STR];	/* Version */
+	void *module_core;	/* Adresse de chargement */
+	unsigned int num_kp;	/* Nombre d'arguments */
+	char args[T_BUF_STR];	/* Arguments */
 };
 
 /* Argument passé à l'ioctl.
@@ -51,30 +51,30 @@ union arg_infomod {
 };
 
 struct fg_arguments {
-	int id;        /* Identifiant d'un job */
-	char *string;  /* Descriptif du job  */
+	int id;			/* Identifiant d'un job */
+	char *string;		/* Descriptif du job  */
 };
 
 struct my_infos {
- 	long long uptime;		/* Seconds since boot */
- 	unsigned long long loads[3];	/* 1, 5, and 15 minute load averages */
- 	unsigned long long totalram;	/* Total usable main memory size */
- 	unsigned long long freeram;	/* Available memory size */
- 	unsigned long long sharedram;	/* Amount of shared memory */
- 	unsigned long long bufferram;	/* Memory used by buffers */
- 	unsigned long long totalswap;	/* Total swap space size */
- 	unsigned long long freeswap;	/* swap space still available */
- 	unsigned short procs;           /* Number of current processes */
- 	unsigned short pad;	        /* Explicit padding for m68k */
- 	unsigned long long totalhigh;	/* Total high memory size */
- 	unsigned long long freehigh;	/* Available high memory size */
- 	unsigned long mem_unit;	        /* Memory unit size in bytes */
+	long long uptime;	/* Seconds since boot */
+	unsigned long long loads[3];	/* 1, 5, and 15 minute load averages */
+	unsigned long long totalram;	/* Total usable main memory size */
+	unsigned long long freeram;	/* Available memory size */
+	unsigned long long sharedram;	/* Amount of shared memory */
+	unsigned long long bufferram;	/* Memory used by buffers */
+	unsigned long long totalswap;	/* Total swap space size */
+	unsigned long long freeswap;	/* swap space still available */
+	unsigned short procs;	/* Number of current processes */
+	unsigned short pad;	/* Explicit padding for m68k */
+	unsigned long long totalhigh;	/* Total high memory size */
+	unsigned long long freehigh;	/* Available high memory size */
+	unsigned long mem_unit;	/* Memory unit size in bytes */
 };
 
 /* Structure utilisée pour énumérer les détails des jobs */
 struct listing {
 	struct module_argument *args;
-	char* out;
+	char *out;
 	int size;
 };
 
@@ -94,7 +94,7 @@ enum argument_type {
 struct module_argument {
 	int async;
 	enum argument_type arg_type;
-	union  {
+	union {
 		struct pid_list pid_list_a;
 		struct signal_s kill_a;
 		union arg_infomod modinfo_a;
@@ -104,5 +104,4 @@ struct module_argument {
 	};
 };
 
-
-#endif /* TERMINUS */
+#endif				/* TERMINUS */
