@@ -160,15 +160,15 @@ static void t_list(struct work_struct *work)
 
 		switch (handler->arg.arg_type) {
 		case modinfo_t:
-			scnprintf(aux, inverse_sum, " %d MODINFO\n",
+			scnprintf(aux, inverse_sum, " %d MODINFO\n ",
 				  handler->id);
 			break;
 		case meminfo_t:
-			scnprintf(aux, inverse_sum, " %d MEMINFO\n",
+			scnprintf(aux, inverse_sum, " %d MEMINFO\n ",
 				  handler->id);
 			break;
 		case kill_t:
-			scnprintf(aux, inverse_sum, " %d KILL\n", handler->id);
+			scnprintf(aux, inverse_sum, " %d KILL\n ", handler->id);
 			break;
 		default:
 			break;
@@ -461,7 +461,7 @@ void do_it(struct module_argument *arg)
 	} else {
 		mutex_unlock(&glob_mut);
 		wait_event(cond_wait_queue, handler->sleep != 0);
-		pr_info("copying to user\n");
+
 		copy_to_user((void *)arg, (void *)&(handler->arg),
 			     sizeof(struct module_argument));
 		kfree(handler);
