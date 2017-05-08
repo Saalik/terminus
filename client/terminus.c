@@ -210,10 +210,16 @@ void t_list(int fd)
 	arg.arg_type = pid_list_t;
 	arg.async = 0;
 
+	arg.list_a.out = (char *) malloc(T_BUF_SIZE * sizeof(char));
+	arg.list_a.size = T_BUF_SIZE;
 
 	printf("sending list\n");
-	if (ioctl(fd, T_LIST, &arg) != 0)
+	if (ioctl(fd, T_LIST, &arg) != 0) {
 		perror("ioctl");
+		return;
+	} else {
+		printf("%s\n", arg.list_a.out);
+	}
 
 	return;
 }
