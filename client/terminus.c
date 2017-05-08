@@ -41,7 +41,7 @@ size_t lazy_cmp(char *s1, char *s2) {
 
 void show_results(struct module_argument arg)
 {
-	printf("type is %s\n", arg.arg_type);
+	printf("type is %d\n", arg.arg_type);
 	switch(arg.arg_type) {
 	case modinfo_t:
 		printf("%s\n%s\n%p\n%d arguments",
