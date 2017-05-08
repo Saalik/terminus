@@ -39,6 +39,26 @@ size_t lazy_cmp(char *s1, char *s2) {
 	return strncmp(s1, s2, strlen(s2));
 }
 
+void show_results(struct module_argument arg)
+{
+	switch(arg.arg_type) {
+	case modinfo_t:
+		printf("%s\n%s\n%p\n%d arguments",
+		       arg.modinfo_a.data.name,
+		       arg.modinfo_a.data.version,
+		       arg.modinfo_a.data.module_core,
+		       arg.modinfo_a.data.num_kp);
+		if (arg.modinfo_a.data.num_kp) {
+			printf(":\n%s", arg.modinfo_a.data.args);
+		}
+		printf("\n");
+		break;
+	default:
+		break;
+	}
+	return;
+}
+
 void meminfo(int fd, int async)
 {
 	struct module_argument arg;
@@ -91,16 +111,8 @@ void modinfo(int fd, char* module_name)
 			return;
 		}
 		else {
-			printf("%s\n%s\n%p\n%d arguments",
-			       arg.modinfo_a.data.name,
-			       arg.modinfo_a.data.version,
-			       arg.modinfo_a.data.module_core,
-			       arg.modinfo_a.data.num_kp);
-			if (arg.modinfo_a.data.num_kp) {
-				printf(":\n%s", arg.modinfo_a.data.args);
-			}
+			show_results(arg);
 			free(tmp_ptr);
-			printf("\n");
 			return;
 		}
 	} else perror("ioctl");
@@ -157,6 +169,16 @@ void t_wait(int fd, int wait_all)
 			return;
 		}
 	}
+}
+
+void t_fg(int fd)
+{
+	struct module_argument arg;
+	arg.arg_type = fg_t;
+	arg.async = 0;
+
+	if (ioctl(fd, T_FG, &arg) != 0)
+		perror("ioctl");
 }
 
 int main(int argc, char ** argv)

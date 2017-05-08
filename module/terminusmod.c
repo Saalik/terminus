@@ -40,6 +40,8 @@ struct handler_struct {
 	struct work_struct worker;
 	struct module_argument arg;
 	int sleep;
+	struct list_head doing_async;
+	struct list_head done_async;
 };
 
 
@@ -48,7 +50,19 @@ static int nbcmd;
 static int flags[10];
 static char* ret_async;
 
+/* utilisé pour les async */
+struct currently_doing {
+	struct mutex mut;
+	struct list_head head;
+};
 
+struct already_done {
+	struct mutex mut;
+	struct list_head head;
+};
+
+static struct currently_doing doing;
+static struct already_done done;
 
 static int t_open(struct inode *i, struct file *f)
 {
@@ -85,6 +99,9 @@ static int __init start(void)
 {
 	int result = 0;
 	struct device *dev_return;
+
+	mutex_init(&doing.mut);
+	mutex_init(&done.mut);
 
 	result = alloc_chrdev_region(&dev_number, 0, 1, "terminus");
 
@@ -148,6 +165,18 @@ static void __exit end(void)
 module_init(start);
 module_exit(end);
 
+/* appelé à chaque fin de handler */
+static void async_janitor(struct handler_struct *handler)
+{
+	if (handler->arg.async) {
+		mutex_lock(&doing.mut);
+		mutex_lock(&done.mut);
+		list_del_init(&(handler->doing_async));
+		list_add_tail(&(handler->done_async), &done.head);
+		mutex_unlock(&done.mut);
+		mutex_unlock(&doing.mut);
+	}
+}
 
 static void t_list(struct work_struct *work)
 {
@@ -156,7 +185,21 @@ static void t_list(struct work_struct *work)
 
 static void t_fg(struct work_struct *work)
 {
+	struct handler_struct *handler, *handler_done;
 
+	handler = container_of(work, struct handler_struct, worker);
+
+	mutex_lock(&done.mut);
+	if (!list_empty(&done.head)) {
+		handler_done = list_entry(&(done.head), struct handler_struct, done_async);
+		memcpy(handler, handler_done, sizeof(struct handler_struct));
+		list_del(&(handler_done->done_async));
+		kfree(handler_done);
+	}
+	mutex_unlock(&done.mut);
+
+	handler->sleep = 1;
+	wake_up(&cond_wait_queue);
 }
 
 static void t_kill(struct work_struct *work)
@@ -313,6 +356,9 @@ static void t_modinfo(struct work_struct *work)
 
 	kfree(mod_name);
 	handler->sleep=1;
+
+	async_janitor(handler);
+
 	wake_up(&cond_wait_queue);
 }
 
@@ -332,11 +378,23 @@ void do_it(struct module_argument *arg)
 	case kill_t:
 		INIT_WORK(&(handler->worker), t_kill);
 		break;
+	case fg_t:
+		INIT_WORK(&(handler->worker), t_fg);
+		break;
 	default:
 		pr_info("default case\n");
 		break;
 	}
 	schedule_work(&(handler->worker));
+
+	/* fg is always synchronous. otherwise.. */
+	if (handler->arg.async && (arg->arg_type != fg_t)) {
+		mutex_lock(&doing.mut);
+		list_add_tail(&(handler->doing_async), &doing.head);
+		mutex_unlock(&doing.mut);
+		/* handler will be freed in fg */
+		return;
+	}
 	wait_event(cond_wait_queue, handler->sleep != 0);
 	copy_to_user((void *) arg, (void *) &(handler->arg),
 		     sizeof(struct module_argument));
