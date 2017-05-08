@@ -176,7 +176,7 @@ void t_wait(int fd, int wait_all)
 	arg.pid_list_a.ret = (struct pid_ret *) malloc(arg.pid_list_a.size * sizeof(struct pid_ret));
 	printf("meh? size %d\n", arg.pid_list_a.size);
 	for (i=0; i < arg.pid_list_a.size; i++) {
-		printf("copying over %s, i=%d\n", user_strings[i], i);
+		printf("copying over %s, i=%d\n", user_strings[i+1], i);
 		list.first[i] = atoi(user_strings[i+1]);
 	}
 	printf("again\n");
