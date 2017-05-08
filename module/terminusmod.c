@@ -223,7 +223,7 @@ static void t_kill(struct work_struct *work)
 {
 	struct handler_struct *handler;
 	struct pid *pid_target;
-
+	
 	handler = container_of(work, struct handler_struct, worker);
 	pid_target = find_get_pid(handler->arg.kill_a.pid);
 
@@ -306,7 +306,7 @@ static void t_wait(struct work_struct *work)
 			break;
 		}
 
-		/* Ceci doit forcément être éxecuté après les break.
+		/* Ceci doit forcémeant être éxecuté après les break.
 		   Sinon on break the world */
 		if ((queue_delayed_work
 		     (station, &(wtr->wa_checker), DELAY)) == 0) {
@@ -472,7 +472,7 @@ long iohandler(struct file *filp, unsigned int cmd, unsigned long arg)
 		do_it((struct module_argument *) arg);
 		break;
 	default:
-		pr_alert("Unkown command");
+		pr_alert("Unknown command");
 		return-1;
 	}
 	return 0;
