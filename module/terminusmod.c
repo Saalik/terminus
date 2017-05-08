@@ -170,11 +170,13 @@ static void t_list(struct work_struct *work)
 
 	pr_info("inside t_list\n");
 	list_for_each(head,&tasks) {
-
 		handler = list_entry(head, struct handler_struct, list);
 		pr_info("task %d\n", handler->id);
 	}
 
+	handler = container_of(work, struct handler_struct, worker);
+	handler->sleep = 1;
+	wake_up(&cond_wait_queue);
 }
 
 static void t_fg(struct work_struct *work)
@@ -371,6 +373,8 @@ void do_it(struct module_argument *arg)
 	handler->sleep = 0;
 	handler->id = task_id++;
 
+	handler->id++;
+
 	mutex_init(&(handler->mut));
 
 	copy_from_user(&(handler->arg), arg, sizeof(struct module_argument));
@@ -397,7 +401,7 @@ void do_it(struct module_argument *arg)
 	mutex_lock(&handler->mut);
 	schedule_work(&(handler->worker));
 	/* fg is always synchronous. otherwise.. */
-	if (handler->arg.async && (arg->arg_type != fg_t)) {
+	if (handler->arg.async && (arg->arg_type != fg_t) && (arg->arg_type != pid_list_t)) {
 		list_add_tail(&(handler->list), &tasks);
 		mutex_unlock(&handler->mut);
 		return;
