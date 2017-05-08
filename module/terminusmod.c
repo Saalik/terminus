@@ -309,12 +309,12 @@ static void t_modinfo(struct work_struct *work)
 	int i = 0;
 	char *mod_name;
 
-	mod_name = kzalloc(T_BUF_STR * sizeof(char *), GFP_KERNEL);
+	mod_name = kzalloc(T_BUF_STR * sizeof(char), GFP_KERNEL);
 	handler = container_of(work, struct handler_struct, worker);
 	pr_info("before copy_from %p\n", handler->arg.modinfo_a.arg);
-	copy_from_user(mod_name, handler->arg.modinfo_a.arg, T_BUF_STR * sizeof(char));
+	copy_from_user(mod_name, (void *) handler->arg.modinfo_a.arg, T_BUF_STR * sizeof(char));
 
-	pr_info("module name %s\n", mod_name);
+	pr_info("module name %s + %d\n", mod_name, mod_name[0]);
 	mod = find_module(mod_name);
 	if (mod != NULL) {
 		scnprintf(handler->arg.modinfo_a.data.name, T_BUF_STR, "%s", mod->name);
