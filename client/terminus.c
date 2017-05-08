@@ -58,8 +58,11 @@ void meminfo(int fd, int async)
 
 void modinfo(int fd, char* module_name)
 {
-	struct module_argument arg;
 	char *tmp_ptr = NULL;
+	struct module_argument arg;
+	arg.arg_type = meminfo_t;
+	arg.async = 0;
+
 
 	memset(&arg.modinfo_a, 0, sizeof(union arg_infomod));
 	arg.modinfo_a.arg = (char *) malloc(T_BUF_STR * sizeof(char));

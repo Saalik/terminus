@@ -340,11 +340,11 @@ static void t_modinfo(struct work_struct *work)
 void do_it(struct module_argument *arg)
 {
 	struct handler_struct *handler;
-
+	pr_info("do it begins\n");
 	handler = kzalloc(sizeof(struct handler_struct), GFP_KERNEL);
 	handler->sleep = 0;
 	copy_from_user(&(handler->arg), arg, sizeof(struct module_argument));
-
+	pr_info("do it: just copied argument\n");
 	switch (arg->arg_type) {
 	case meminfo_t:
 		INIT_WORK(&(handler->worker), t_meminfo);
@@ -352,6 +352,8 @@ void do_it(struct module_argument *arg)
 	case modinfo_t:
 		pr_info("adding work modinfo\n");
 		INIT_WORK(&(handler->worker), t_modinfo);
+		pr_info("added work modinfo\n");
+		break;
 	default:
 		break;
 	}
