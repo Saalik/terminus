@@ -199,7 +199,7 @@ static void t_kill(struct work_struct *work)
 static void t_wait(void *arg)
 {
 	struct waiter *wtr;
-	int i, left = 1;
+	int i, killed;
 	struct pid_list pidlist;
 	int *tab;
 	struct pid *p;
@@ -229,37 +229,33 @@ static void t_wait(void *arg)
 		put_pid(p);
 	}
 	pr_info("got some pids");
-	while (1) {
-		left = 0;
+	for (killed = 0; killed < wtr->wa_pids_size;) {
+		pr_info("forloop\n");
 		for (i = 0; i < wtr->wa_pids_size; i++) {
 			if (wtr->wa_pids[i] != NULL) {
-				left++;
 				if (!pid_alive(wtr->wa_pids[i])) {
+					killed++;
 					put_task_struct(wtr->wa_pids[i]);
 					wtr->wa_pids[i] = NULL;
 				}
-			} else
-				break;
-
+			}
 		}
-		if (left==wtr->wa_pids_size) {
-			if ((queue_delayed_work
-			     (station, &(wtr->wa_checker), DELAY)) == 0)
-				/*
-				 * Ralentir la boucle
-				 * t_wait_slow(&condition) en Asynchrone.
-				 */
-				/*Appel de wait_slow */
-				wtr->wa_fin = 0;
+
+		if (killed == wtr->wa_pids_size) break;
+
+		if ((queue_delayed_work
+		     (station, &(wtr->wa_checker), DELAY)) == 0) {
+			/*
+			 * Ralentir la boucle
+			 * t_wait_slow(&condition) en Asynchrone.
+			 */
+			/*Appel de wait_slow */
+			wtr->wa_fin = 0;
 			pr_info("Avant wait interrupt");
 			wait_event_interruptible(cond_wait_queue,
 						 wtr->wa_fin != 0);
-
 		}
 	}
-	kfree(wtr->wa_pids);
-	kfree(wtr);
-	kfree(tab);
 
  nope_pid:
 	kfree(wtr->wa_pids);
