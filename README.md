@@ -30,8 +30,7 @@ La liste des commandes disponible est visible grace a la commande:
 
 Il est possible de lancer les commandes meminfo, modinfo, kill de manière asynchrone en utilisant le caractère _'&'_
 
-
-Commandes disponibles: 
+**Commandes disponibles:**
 
 <pre><code>list</code></pre>
 
