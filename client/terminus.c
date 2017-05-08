@@ -176,6 +176,7 @@ void t_wait(int fd, int wait_all)
 	printf("meh?\n");
 	for (i=0; i < list.size; i++)
 		list.first[i] = atoi(user_strings[i+1]);
+	printf("again\n");
 	if (wait_all) {
 		if (ioctl(fd, T_WAIT_ALL, &arg) != 0) {
 			perror("ioctl");
