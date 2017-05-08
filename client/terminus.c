@@ -39,22 +39,28 @@ size_t lazy_cmp(char *s1, char *s2) {
 	return strncmp(s1, s2, strlen(s2));
 }
 
-void show_results(struct module_argument arg)
+void show_results(int fd)
 {
-	switch(arg.arg_type) {
-	case modinfo_t:
-		printf("%s\n%s\n%p\n%d arguments",
-		       arg.modinfo_a.data.name,
-		       arg.modinfo_a.data.version,
-		       arg.modinfo_a.data.module_core,
-		       arg.modinfo_a.data.num_kp);
-		if (arg.modinfo_a.data.num_kp) {
-			printf(":\n%s", arg.modinfo_a.data.args);
+	struct module_argument arg;
+
+	if (ioctl(fd, T_FG, &arg) == 0) {
+		switch(arg.arg_type) {
+		case modinfo_t:
+			printf("%s\n%s\n%p\n%d arguments",
+			       arg.modinfo_a.data.name,
+			       arg.modinfo_a.data.version,
+			       arg.modinfo_a.data.module_core,
+			       arg.modinfo_a.data.num_kp);
+			if (arg.modinfo_a.data.num_kp) {
+				printf(":\n%s", arg.modinfo_a.data.args);
+			}
+			printf("\n");
+			break;
+		default:
+			break;
 		}
-		printf("\n");
-		break;
-	default:
-		break;
+	} else {
+		perror("ioctl");
 	}
 	return;
 }
@@ -105,7 +111,7 @@ void modinfo(int fd, char* module_name, int async)
 	tmp_ptr = arg.modinfo_a.arg;
 
 	if (ioctl(fd, T_MODINFO, &arg) == 0) {
-		if (arg.async == 0) {
+		if (arg.async == 1) {
 			free(tmp_ptr);
 			return;
 		}
@@ -238,6 +244,11 @@ int main(int argc, char ** argv)
 
 		if (lazy_cmp(user_strings[0], "wait") == 0) {
 			t_wait(fd, 0);
+			goto cleanup;
+		}
+
+		if (lazy_cmp(user_strings[0], "fg") == 0) {
+			show_results(fd);
 			goto cleanup;
 		}
 
