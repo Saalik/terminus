@@ -46,10 +46,6 @@ struct handler_struct {
 };
 
 
-static struct listing *listcmd;
-static int nbcmd;
-static int flags[10];
-static char* ret_async;
 static int task_id = 0;
 
 LIST_HEAD(tasks);
@@ -75,13 +71,6 @@ static const struct file_operations fops = {
 	.unlocked_ioctl = iohandler,
 };
 
-/*
-
-  Structure pour la création de la workqueue
-  struct workqueue_struct *create_workqueue(const char *name);
-
-*/
-
 static struct workqueue_struct *station;
 
 DECLARE_WAIT_QUEUE_HEAD(cond_wait_queue);
@@ -101,7 +90,6 @@ static int __init start(void)
 	result = cdev_add(&c_dev, dev_number, 1);
 
 	if (result < 0) {
-		pr_alert("cdev_add\n");
 		goto fail;
 	}
 
@@ -109,7 +97,6 @@ static int __init start(void)
 
 	if (IS_ERR(class)) {
 		result = PTR_ERR(class);
-		pr_alert("class_create\n");
 		goto fail_class;
 	}
 
@@ -117,19 +104,15 @@ static int __init start(void)
 
 	if (IS_ERR(dev_return)) {
 		result = PTR_ERR(dev_return);
-		pr_alert("device_create\n");
 		goto device_fail;
 	}
 	/*dev_num = register_chrdev(0, "terminus", &fops); */
 	station = create_workqueue("workstation");
 
 	if (station == NULL) {
-		pr_alert("Workqueue station creation failed in init");
 		return -1;
 	}
-	pr_info("Terminus created w/devnum %d", MAJOR(dev_number));
 
-	pr_alert("Start to Terminus\n");
 	return 0;
 device_fail:
 	/*device_destroy(class, dev_number); */
@@ -158,9 +141,7 @@ module_exit(end);
 static void async_janitor(struct handler_struct *handler)
 {
 	if (handler->arg.async) {
-		pr_info("first mutex lock, handler is %d @ %p\n", handler->arg.arg_type, handler);
 		handler->finished = 1;
-		pr_info("unlocked all\n");
 	}
 }
 
@@ -168,20 +149,13 @@ static void t_list(struct work_struct *work)
 {
 	struct handler_struct *handler;
 	struct list_head *head;
-	int list_size;
-	int i = 0;
-	struct listing *list_args;
 	char* out = kzalloc(sizeof(char) * T_BUF_SIZE, GFP_KERNEL);
 	char *aux = out;
 	int inverse_sum = T_BUF_SIZE;
-	pr_info("just about inside t_list\n");
 	mutex_lock(&glob_mut);
-	pr_info("inside t_list\n");
 
 	list_for_each(head,&tasks) {
-		pr_info("sup head\n");
 		handler = list_entry(head, struct handler_struct, list);
-		pr_info("switching off\n");
 		switch (handler->arg.arg_type) {
 		case modinfo_t:
 			scnprintf(aux, inverse_sum, " %d MODINFO\n", handler->id);
@@ -197,14 +171,11 @@ static void t_list(struct work_struct *work)
 		}
 		aux += strlen(aux)-1;
 		inverse_sum -= strlen(aux)-1;
-		pr_info("got modinfo + strlen %d\n", strlen(aux));
-		pr_info("task %d\n", handler->id);
 	}
 	mutex_unlock(&glob_mut);
 
 
 	handler = container_of(work, struct handler_struct, worker);
-	pr_info("going to send THIS\n%s\n", out);
 
 	copy_to_user(handler->arg.list_a.out, out, T_BUF_SIZE * sizeof(char));
 	kfree(out);
@@ -218,43 +189,30 @@ static void t_fg(struct work_struct *work)
 	struct handler_struct *handler, *handler_done;
 	struct list_head *head, *tmp;
 
-	pr_info("getting handler\n");
 	handler = container_of(work, struct handler_struct, worker);
 	id = handler->arg.fg_a.id;
-	pr_info("looking for %d\n", id);
 	mutex_lock(&glob_mut);
-	pr_info("do i get through here\n");
 	if (!list_empty(&tasks)) {
 		list_for_each_safe(head, tmp, &tasks) {
-			pr_info("tis good?\n");
 			handler_done = list_entry(head, struct handler_struct, list);
-			pr_info("should be good\n");
 			if (handler_done->id == id) {
-				pr_info("found handler %d\n", handler_done->id);
 				while (!done) {
-					pr_info("not done, maybe\n");
 					if (handler_done->finished) {
-						pr_info("done, copying to handler to hand off\n");
 						memcpy(handler, handler_done, sizeof(struct handler_struct));
-						pr_info("deleting from jobs\n");
 						list_del(&(handler_done->list));
 
 						done = 1;
 					}
 					else {
-						pr_info("waiting for\n");
 						wait_event(cond_wait_queue, handler_done->sleep != 0);
-						pr_info("waited for\n");
 					}
 				}
 			}
 			else {
 				pr_info("we should not be here, handler w/id %d\n", handler_done->id);
-				pr_info("we should NOT be looking for %d\n", id);
 			}
 		}
 	}
-	pr_info("done\n");
     	mutex_unlock(&glob_mut);
 
 	handler->sleep = 1;
@@ -288,6 +246,7 @@ static void t_wait(struct work_struct *work)
 	struct pid_list pidlist;
 	int *tab;
 	struct pid *p;
+	struct pid_ret *rets;
 	handler = container_of(work, struct handler_struct, worker);
 	wtr = kmalloc(sizeof(struct waiter), GFP_KERNEL);
 	INIT_DELAYED_WORK(&(wtr->wa_checker), t_wait_slow);
@@ -302,6 +261,8 @@ static void t_wait(struct work_struct *work)
 		return;
 	/* récup le tab en lui même */
 	/* copy_from_user(tab, pidlist.first, sizeof(int) * pidlist.size); */
+
+	rets = kzalloc(pidlist.size * sizeof(struct pid_ret), GFP_KERNEL);
 
 	wtr->wa_pids =
 	    kzalloc(sizeof(struct task_struct *) * pidlist.size, GFP_KERNEL);
@@ -325,6 +286,9 @@ static void t_wait(struct work_struct *work)
 			if (wtr->wa_pids[i] != NULL) {
 				if (!pid_alive(wtr->wa_pids[i])) {
 					killed++;
+					rets[i].pid = tab[i];
+					rets[i].ret = wtr->wa_pids[i]->exit_code;
+
 					put_task_struct(wtr->wa_pids[i]);
 					wtr->wa_pids[i] = NULL;
 				}
@@ -357,13 +321,15 @@ static void t_wait(struct work_struct *work)
 						 wtr->wa_fin != 0);
 		}
 	}
-
-	pr_info("delayed work canceled w/ value %d\n", cancel_delayed_work(&(wtr->wa_checker)));
-
  nope_pid:
 	kfree(wtr->wa_pids);
 	kfree(wtr);
 	kfree(tab);
+	kfree(rets);
+	handler->sleep = 1;
+	async_janitor(handler);
+	wake_up(&cond_wait_queue);
+
 }
 
 static void t_wait_slow(struct work_struct *work)

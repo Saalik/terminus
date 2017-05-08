@@ -41,7 +41,7 @@ size_t lazy_cmp(char *s1, char *s2) {
 
 void show_results(struct module_argument arg)
 {
-	printf("type is %d\n", arg.arg_type);
+	int i = 0;
 	switch(arg.arg_type) {
 	case modinfo_t:
 		printf("Name\t%s\nVersion\t%s\nCore\t%p\n%d arguments",
@@ -165,6 +165,7 @@ void t_wait(int fd, int wait_all)
 	}
 
 	list.first = (int *) malloc(list.size * sizeof(int));
+	list.ret = (struct pid_ret *) malloc(list.size * sizeof(struct pid_ret));
 
 	for (i=0; i < list.size; i++)
 		list.first[i] = atoi(user_strings[i+1]);
